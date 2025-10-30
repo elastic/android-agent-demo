@@ -1,4 +1,4 @@
-package co.elastic.apm.android.sample.backend.data;
+package co.elastic.apm.android.demo.backend.data;
 
 import java.util.Objects;
 

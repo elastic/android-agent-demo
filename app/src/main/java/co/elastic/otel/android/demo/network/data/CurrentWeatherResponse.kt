@@ -1,3 +1,3 @@
-package co.elastic.otel.android.sample.network.data
+package co.elastic.otel.android.demo.network.data
 
 data class CurrentWeatherResponse(val temperature: Double)

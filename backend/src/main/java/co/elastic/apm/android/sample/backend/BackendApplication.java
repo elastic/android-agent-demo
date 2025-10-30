@@ -1,4 +1,4 @@
-package co.elastic.apm.android.sample.backend;
+package co.elastic.apm.android.demo.backend;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

@@ -8,16 +8,14 @@ plugins {
 }
 
 android {
-    namespace = "co.elastic.otel.android.sample"
+    namespace = "co.elastic.otel.android.demo"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "co.elastic.otel.android.sample"
+        applicationId = "co.elastic.otel.android.demo"
         minSdk = 26
         versionCode = 1
         versionName = "1.0"
-
-        testInstrumentationRunner = "co.elastic.otel.android.sample.tools.SampleAppJunitRunner"
     }
 
     buildTypes {

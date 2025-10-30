@@ -1,4 +1,4 @@
-package co.elastic.otel.android.sample
+package co.elastic.otel.android.demo
 
 import android.app.Application
 import co.elastic.otel.android.ElasticApmAgent
@@ -18,7 +18,7 @@ class MyApp : Application() {
             // Using it here allows accessing services that are running on the host machine from an
             // Android application that runs in the emulator.
             .setExportUrl("http://10.0.2.2:4318")
-            .setServiceName("weather-sample-app")
+            .setServiceName("weather-demo-app")
             .build()
 
         agent.span("Creating app") {

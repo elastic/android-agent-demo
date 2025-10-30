@@ -1,4 +1,4 @@
-package co.elastic.otel.android.sample.ui
+package co.elastic.otel.android.demo.ui
 
 import android.os.Bundle
 import android.text.Html
@@ -10,10 +10,10 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import co.elastic.otel.android.sample.network.WeatherRestManager
-import co.elastic.otel.android.sample.network.data.ForecastResponse
-import co.elastic.otel.android.sample.R
-import co.elastic.otel.android.sample.databinding.FragmentSecondBinding
+import co.elastic.otel.android.demo.network.WeatherRestManager
+import co.elastic.otel.android.demo.network.data.ForecastResponse
+import co.elastic.otel.android.demo.R
+import co.elastic.otel.android.demo.databinding.FragmentSecondBinding
 import kotlinx.coroutines.launch
 
 class SecondFragment : Fragment() {

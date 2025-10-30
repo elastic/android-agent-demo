@@ -1,6 +1,6 @@
-package co.elastic.otel.android.sample.network
+package co.elastic.otel.android.demo.network
 
-import co.elastic.otel.android.sample.network.data.ForecastResponse
+import co.elastic.otel.android.demo.network.data.ForecastResponse
 import retrofit2.http.GET
 import retrofit2.http.Query
 

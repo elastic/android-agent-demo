@@ -1,7 +1,7 @@
-package co.elastic.apm.android.sample.backend;
+package co.elastic.apm.android.demo.backend;
 
-import co.elastic.apm.android.sample.backend.data.ForecastResponse;
-import co.elastic.apm.android.sample.backend.data.Location;
+import co.elastic.apm.android.demo.backend.data.ForecastResponse;
+import co.elastic.apm.android.demo.backend.data.Location;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;

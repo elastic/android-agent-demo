@@ -1,4 +1,4 @@
-package co.elastic.otel.android.sample.ui
+package co.elastic.otel.android.demo.ui
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
@@ -7,9 +7,9 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import co.elastic.otel.android.extensions.log
 import co.elastic.otel.android.extensions.span
-import co.elastic.otel.android.sample.MyApp.Companion.agent
-import co.elastic.otel.android.sample.R
-import co.elastic.otel.android.sample.databinding.ActivityMainBinding
+import co.elastic.otel.android.demo.MyApp.Companion.agent
+import co.elastic.otel.android.demo.R
+import co.elastic.otel.android.demo.databinding.ActivityMainBinding
 import io.opentelemetry.api.common.Attributes
 
 class MainActivity : AppCompatActivity() {

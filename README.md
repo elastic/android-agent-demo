@@ -1,6 +1,6 @@
-# Sample application
+# Demo application
 
-To showcase an end-to-end scenario including distributed tracing we'll instrument this sample
+To showcase an end-to-end scenario including distributed tracing we'll instrument this demo
 weather application that comprises two Android UI fragments and a simple local backend
 service based on Spring Boot.
 
@@ -57,8 +57,8 @@ more information.
 
 > [!NOTE]
 > The reason why is recommended using an emulator is because the
-> endpoints set [here](app/src/main/java/co/elastic/otel/android/sample/MyApp.kt) and
-> [here](app/src/main/java/co/elastic/otel/android/sample/network/WeatherRestManager.kt) point to
+> endpoints set [here](app/src/main/java/co/elastic/otel/android/demo/MyApp.kt) and
+> [here](app/src/main/java/co/elastic/otel/android/demo/network/WeatherRestManager.kt) point to
 > local services via the emulator's localhost IP ([10.0.2.2](https://developer.android.com/studio/run/emulator-networking#networkaddresses)).
 > If you wanted to use a real device, you'd need to replace the `10.0.2.2` host by the one of the
 > machine where you'll start the services mentioned in the steps below.
@@ -89,8 +89,8 @@ We're going to use the `edot-collector-launcher` script, which will:
 
 Once the EDOT Collector is running, its endpoint will be `http://localhost:4318`.
 
-You don't need to set it for this sample application, as it has already been
-done [here](app/src/main/java/co/elastic/otel/android/sample/MyApp.kt). So, for this sample
+You don't need to set it for this demo application, as it has already been
+done [here](app/src/main/java/co/elastic/otel/android/demo/MyApp.kt). So, for this demo
 application use case, once the EDOT Collector is running, you're ready to go to the next step.
 
 #### For Windows
@@ -115,9 +115,9 @@ service.
 
 Once the backend service is running, its endpoint will be `http://localhost:8080/v1/`.
 
-You don't need to set it for this sample application, as it has already been
-done [here](app/src/main/java/co/elastic/otel/android/sample/network/WeatherRestManager.kt). So, for
-this sample application use case, once the backend service is running, you're ready to go to the
+You don't need to set it for this demo application, as it has already been
+done [here](app/src/main/java/co/elastic/otel/android/demo/network/WeatherRestManager.kt). So, for
+this demo application use case, once the backend service is running, you're ready to go to the
 next step.
 
 #### For Windows
@@ -137,16 +137,12 @@ a terminal, navigating to this directory and running the following command:
 
 ### Step 4: Launch the Android application
 
-Open up the [sample-app](.) project dir with Android Studio
+Open up this project with Android Studio
 and [run the application](https://developer.android.com/studio/run) in
 an Android Emulator. Once everything is running, navigate around in the app to generate
 some load that we would like to observe in Elastic APM. So, select a city, click Next and repeat it
 multiple times. Please, also make sure to select New York at least once. You will see that the
 weather forecast won’t work for New York as the city.
-
-> [!IMPORTANT]
-> Make sure you open the [sample-app](.) directory with Android Studio and **NOT** [the root dir](..) of this
-> repo.
 
 ## Analyzing the data
 

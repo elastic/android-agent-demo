@@ -21,18 +21,6 @@ android {
     }
 
     buildTypes {
-        debug {
-            if (project.hasProperty("elastic.testing.automated")) {
-                logger.warn("Building debug with minify enabled for instrumentation tests")
-                isMinifyEnabled = true
-                isDebuggable = false
-                testProguardFiles(
-                    file("androidtest-rules.pro"),
-                    rootProject.file("../shared-rules.pro")
-                )
-                proguardFiles(file("test-rules.pro"))
-            }
-        }
         release {
             isMinifyEnabled = true
             signingConfig = signingConfigs["debug"]
@@ -53,11 +41,8 @@ kotlin {
 }
 
 dependencies {
-    val retrofitVersion = "3.0.0"
-    implementation("androidx.navigation:navigation-fragment-ktx:2.9.5")
-    implementation("androidx.navigation:navigation-ui-ktx:2.9.5")
-    implementation("com.squareup.retrofit2:retrofit:$retrofitVersion")
-    implementation("com.squareup.retrofit2:converter-gson:$retrofitVersion")
-    androidTestImplementation(libs.bundles.androidTest)
-    androidTestImplementation(libs.mockWebServer)
+    implementation(libs.androidx.navigation.fragment.ktx)
+    implementation(libs.androidx.navigation.ui.ktx)
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
 }

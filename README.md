@@ -50,7 +50,7 @@ more information.
 ### Prerequisites
 
 * Java 17 or higher.
-* An Elasticsearch + Kibana setup with version `8.19.0` or higher. If you don't have one yet, you
+* An Elasticsearch + Kibana setup with version `9.2.0` or higher. If you don't have one yet, you
   can
   quickly create it with [start-local](https://github.com/elastic/start-local/).
 * An Elasticsearch API Key. Take a look at how to create

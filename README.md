@@ -1,5 +1,7 @@
 # Demo application
 
+This is a demo Android application to show how the [EDOT Android agent](https://github.com/elastic/apm-agent-android) works.
+
 To showcase an end-to-end scenario including distributed tracing we'll instrument this demo
 weather application that comprises two Android UI fragments and a simple local backend
 service based on Spring Boot.

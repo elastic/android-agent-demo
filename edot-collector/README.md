@@ -3,7 +3,7 @@
 > [!NOTE]
 > This guide explains how to run a standalone EDOT Collector for testing purposes. If you're planning to use it to [try the demo app](..) out, take a look at the demo app's [README](..#how-to-run) instead.
 
-The [EDOT Collector](https://www.elastic.co/docs/reference/opentelemetry/edot-collector/) receives telemetry data from the EDOT Android agent, processes it, and forwards it to Elasticsearch.
+The [EDOT Collector](https://www.elastic.co/docs/reference/opentelemetry/edot-collector/) receives telemetry data from the [EDOT Android agent](https://github.com/elastic/apm-agent-android), processes it, and forwards it to Elasticsearch.
 
 ---
 

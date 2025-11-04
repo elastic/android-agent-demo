@@ -16,10 +16,30 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.otel.android.demo.network.data
+package co.elastic.apm.android.demo.backend.data;
 
-import com.google.gson.annotations.SerializedName
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Objects;
 
-data class ForecastResponse(
-    @SerializedName("current_weather") val currentWeather: CurrentWeatherResponse
-)
+public class ForecastResponse {
+
+  @JsonProperty("current_weather")
+  CurrentWeatherResponse currentWeather;
+
+  public CurrentWeatherResponse getCurrentWeather() {
+    return currentWeather;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    ForecastResponse that = (ForecastResponse) o;
+    return Objects.equals(currentWeather, that.currentWeather);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(currentWeather);
+  }
+}

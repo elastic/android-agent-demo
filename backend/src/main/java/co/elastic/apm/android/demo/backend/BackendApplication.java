@@ -16,10 +16,17 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.otel.android.demo.network.data
+package co.elastic.apm.android.demo.backend;
 
-import com.google.gson.annotations.SerializedName
+import co.elastic.otel.agent.attach.RuntimeAttach;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-data class ForecastResponse(
-    @SerializedName("current_weather") val currentWeather: CurrentWeatherResponse
-)
+@SpringBootApplication
+public class BackendApplication {
+
+  public static void main(String[] args) {
+    RuntimeAttach.attachJavaagentToCurrentJvm();
+    SpringApplication.run(BackendApplication.class, args);
+  }
+}

@@ -1,0 +1,2 @@
+set -e
+./gradlew check

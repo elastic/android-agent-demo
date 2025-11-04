@@ -1,5 +1,7 @@
 # Demo application
 
+This is a demo Android application to show how the [EDOT Android agent](https://github.com/elastic/apm-agent-android) works.
+
 To showcase an end-to-end scenario including distributed tracing we'll instrument this demo
 weather application that comprises two Android UI fragments and a simple local backend
 service based on Spring Boot.
@@ -48,7 +50,7 @@ more information.
 ### Prerequisites
 
 * Java 17 or higher.
-* An Elasticsearch + Kibana setup with version `8.19.0` or higher. If you don't have one yet, you
+* An Elasticsearch + Kibana setup with version `9.2.0` or higher. If you don't have one yet, you
   can
   quickly create it with [start-local](https://github.com/elastic/start-local/).
 * An Elasticsearch API Key. Take a look at how to create

@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.text.HtmlCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -54,7 +55,10 @@ class SecondFragment : Fragment() {
 
     private fun showApiNotice() {
         binding.txtApiNotice.movementMethod = LinkMovementMethod.getInstance()
-        binding.txtApiNotice.text = Html.fromHtml(getString(R.string.weather_api_notice_message))
+        binding.txtApiNotice.text = HtmlCompat.fromHtml(
+            getString(R.string.weather_api_notice_message),
+            HtmlCompat.FROM_HTML_MODE_LEGACY
+        )
     }
 
     private fun updateTemperature(response: ForecastResponse) {

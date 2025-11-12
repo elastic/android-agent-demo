@@ -27,6 +27,7 @@ val findEdotCollectorVersion =
     tasks.register<FindEdotCollectorVersion>("findEdotCollectorVersion") {
         group = "edot"
         outputFile.set(project.layout.buildDirectory.file("version.properties"))
+        doNotTrackState("Ensure the latest version is always used")
     }
 
 val downloadEdotCollector =

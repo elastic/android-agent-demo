@@ -46,7 +46,7 @@ jobs:
       - checks
     steps:
       - id: check
-        uses: elastic/oblt-actions/check-dependent-jobs@f15e5228b7eb0eff4e1734e0af22a3fd40928bf6 # v1
+        uses: elastic/oblt-actions/check-dependent-jobs@4a0df38ef74b2038b64250cb3edea246da24aff5 # v1
         with:
           jobs: ${{ toJSON(needs) }}
       - run: ${{ steps.check.outputs.is-success }}

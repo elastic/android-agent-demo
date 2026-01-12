@@ -12,5 +12,5 @@ java {
 dependencies {
     implementation(platform(org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES))
     implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("co.elastic.otel:elastic-otel-runtime-attach:1.7.0")
+    implementation("co.elastic.otel:elastic-otel-runtime-attach:1.8.0")
 }

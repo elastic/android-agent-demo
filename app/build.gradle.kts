@@ -2,7 +2,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
     id("co.elastic.otel.android.agent") version "1.5.0"
     id("co.elastic.otel.android.instrumentation.okhttp") version "1.5.0"
 }
@@ -24,17 +23,13 @@ android {
             signingConfig = signingConfigs["debug"]
         }
     }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
     buildFeatures {
         viewBinding = true
     }
 }
 kotlin {
     compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_1_8)
+        jvmToolchain(11)
     }
 }
 

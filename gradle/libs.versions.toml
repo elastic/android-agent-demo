@@ -1,6 +1,5 @@
 [versions]
-android = "8.13.2"
-kotlin = "2.3.0"
+android = "9.0.0"
 navigation = "2.9.6"
 retrofit = "3.0.0"
 
@@ -13,4 +12,3 @@ retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit
 [plugins]
 androidApp = { id = "com.android.application", version.ref = "android" }
 androidLib = { id = "com.android.library", version.ref = "android" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

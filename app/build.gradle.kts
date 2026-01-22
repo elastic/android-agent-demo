@@ -3,8 +3,8 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("co.elastic.otel.android.agent") version "1.4.0"
-    id("co.elastic.otel.android.instrumentation.okhttp") version "1.4.0"
+    id("co.elastic.otel.android.agent") version "1.5.0"
+    id("co.elastic.otel.android.instrumentation.okhttp") version "1.5.0"
 }
 
 android {

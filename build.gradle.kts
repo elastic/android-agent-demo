@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.androidApp) apply false
     alias(libs.plugins.androidLib) apply false
-    id("com.diffplug.spotless") version "8.2.0"
+    id("com.diffplug.spotless") version "8.2.1"
 }
 
 subprojects {

@@ -1,6 +1,6 @@
 [versions]
 android = "9.0.0"
-navigation = "2.9.6"
+navigation = "2.9.7"
 retrofit = "3.0.0"
 
 [libraries]

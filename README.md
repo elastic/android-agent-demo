@@ -40,7 +40,7 @@ errors are captured and correlated.
 ### Prerequisites
 
 * Java 17 or higher.
-* [Docker](https://www.docker.com/) or [Podman](https://podman.io/).
+* [Docker](https://www.docker.com/).
 * An [Android emulator](https://developer.android.com/studio/run/emulator#get-started).
 
 > [!NOTE]
@@ -60,10 +60,6 @@ the EDOT Collector locally with a single command. Run the following:
 curl -fsSL https://elastic.co/start-local | sh -s -- --edot
 ```
 
-> [!NOTE]
-> If you are using Podman instead of Docker, use
-> `curl -fsSL https://elastic.co/start-local-podman | sh -s -- --edot`
-
 This creates an `elastic-start-local` folder and starts all three services. Once it finishes, the
 EDOT Collector endpoint will be `http://localhost:4318`.
 
@@ -77,6 +73,9 @@ cd elastic-start-local
 ./stop.sh   # stop the services
 ./start.sh  # start them again
 ```
+
+For more information on start-local, refer to
+the [start-local documentation](https://github.com/elastic/start-local/).
 
 ### Step 2: Launching the backend service
 

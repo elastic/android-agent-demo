@@ -120,7 +120,10 @@ weather forecast won't work for New York as the city.
 
 ## Analyzing the data
 
-After launching the app and navigating through it, you should be able to start seeing telemetry data
-coming into your configured Kibana instance. For a more detailed overview, take a look at how
+After launching the app and navigating through it, open Kibana at http://localhost:5601 and log in
+with username `elastic` and the password printed at the end of the start-local setup. You can also
+find the password in `elastic-start-local/.env` (the `ES_LOCAL_PASSWORD` variable).
+
+For a more detailed overview, take a look at how
 to [Visualize telemetry](https://www.elastic.co/docs/reference/opentelemetry/edot-sdks/android/getting-started#visualize-telemetry)
 in the docs.

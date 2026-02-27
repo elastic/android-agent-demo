@@ -33,7 +33,10 @@ class MyApp : Application() {
     super.onCreate()
     agent =
         ElasticApmAgent.builder(this)
-            .setExportUrl("http://${BuildConfig.SERVICE_HOST}:4318")
+            // For Android Emulators, the "10.0.2.2" address is the one of its host machine.
+            // Using it here allows accessing services that are running on the host machine from an
+            // Android application that runs in the emulator.
+            .setExportUrl("http://10.0.2.2:4318")
             .setServiceName("weather-demo-app")
             .build()
 

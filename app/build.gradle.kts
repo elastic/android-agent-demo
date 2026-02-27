@@ -15,9 +15,6 @@ android {
         minSdk = 26
         versionCode = 1
         versionName = "1.0"
-
-        val serviceHost = providers.gradleProperty("serviceHost").getOrElse("10.0.2.2")
-        buildConfigField("String", "SERVICE_HOST", "\"$serviceHost\"")
     }
 
     buildTypes {
@@ -28,7 +25,6 @@ android {
     }
     buildFeatures {
         viewBinding = true
-        buildConfig = true
     }
 }
 kotlin {

@@ -3,7 +3,7 @@ set -e
 
 BASEDIR=$(dirname "$0")
 
-"$BASEDIR/gradlew" :backend:bootJar
+"$BASEDIR/gradlew" -p "$BASEDIR" :backend:bootJar
 
 docker rm -f weather-backend 2>/dev/null || true
 docker build -t weather-backend "$BASEDIR/backend"

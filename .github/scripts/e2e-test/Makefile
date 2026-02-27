@@ -9,14 +9,7 @@ elastic-start-local:  ## Start ES + Kibana + EDOT Collector locally
 
 .PHONY: start-backend
 start-backend: elastic-start-local  ## Build and start the backend service in Docker
-	$(repo_root)/gradlew -p "$(repo_root)" :backend:bootJar
-	docker build -t weather-backend "$(repo_root)/backend"
-	docker run -d --name weather-backend \
-		--network elastic-start-local_default \
-		-p 8080:8080 \
-		-e OTEL_SERVICE_NAME=weather-backend \
-		-e OTEL_EXPORTER_OTLP_ENDPOINT=http://edot-collector:4318 \
-		weather-backend
+	$(repo_root)/backend-launcher &
 	./await_port.sh 8080 120
 
 .PHONY: start-env

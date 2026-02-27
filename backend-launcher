@@ -7,6 +7,7 @@ BASEDIR=$(dirname "$0")
 
 docker rm -f weather-backend 2>/dev/null || true
 docker build -t weather-backend "$BASEDIR/backend"
+
 exec docker run --name weather-backend \
   --network elastic-start-local_default \
   -p 8080:8080 \

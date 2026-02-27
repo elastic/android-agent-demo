@@ -80,8 +80,18 @@ cd elastic-start-local
 
 ### Step 2: Launching the backend service
 
-We're going to use the `backend-launcher` script, which will build and run the Spring Boot backend
-service.
+Build the backend and run it in Docker, connected to the same network as the EDOT Collector:
+
+```shell
+./gradlew :backend:bootJar
+docker build -t weather-backend backend/
+docker run -d --name weather-backend \
+  --network elastic-start-local_default \
+  -p 8080:8080 \
+  -e OTEL_SERVICE_NAME=weather-backend \
+  -e OTEL_EXPORTER_OTLP_ENDPOINT=http://edot-collector:4318 \
+  weather-backend
+```
 
 Once the backend service is running, its endpoint will be `http://localhost:8080/v1/`.
 
@@ -90,20 +100,7 @@ done [here](app/src/main/java/co/elastic/otel/android/demo/network/WeatherRestMa
 this demo application use case, once the backend service is running, you're ready to go to the
 next step.
 
-#### For Windows
-
-Execute the [backend-launcher.ps1](backend-launcher.ps1) script with PowerShell. You
-can learn how to do so by taking a look
-at [this guide](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_scripts#how-to-run-a-script).
-
-#### For Linux and MacOS
-
-Execute the [backend-launcher](backend-launcher) script. You can do so by opening up
-a terminal, navigating to this directory and running the following command:
-
-```shell
-./backend-launcher
-```
+To stop the backend: `docker rm -f weather-backend`
 
 ### Step 3: Launch the Android application
 

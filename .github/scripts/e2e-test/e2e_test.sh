@@ -114,7 +114,7 @@ launch_app "$repo_root"
 
 # Trigger a backend request to generate backend telemetry
 echo "Triggering backend request..."
-curl -sS "http://localhost:8080/v1/forecast?city=Berlin" > /dev/null
+curl -sS --retry 5 --retry-connrefused --retry-delay 2 "http://localhost:8080/v1/forecast?city=Berlin" > /dev/null
 
 echo "Waiting for telemetry data to be indexed..."
 

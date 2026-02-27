@@ -42,6 +42,8 @@ errors are captured and correlated.
 * Java 17 or higher.
 * [Docker](https://www.docker.com/).
 * An [Android emulator](https://developer.android.com/studio/run/emulator#get-started).
+* On Microsoft Windows
+  use [Windows Subsystem for Linux (WSL)](https://learn.microsoft.com/en-us/windows/wsl/install).
 
 > [!NOTE]
 > The reason why is recommended using an emulator is because the
@@ -88,14 +90,6 @@ You don't need to set it for this demo application, as it has already been
 done [here](app/src/main/java/co/elastic/otel/android/demo/network/WeatherRestManager.kt). So, for
 this demo application use case, once the backend service is running, you're ready to go to the
 next step.
-
-#### For Windows
-
-Execute the [backend-launcher.ps1](backend-launcher.ps1) script with PowerShell. You
-can learn how to do so by taking a look
-at [this guide](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_scripts#how-to-run-a-script).
-
-#### For Linux and MacOS
 
 Execute the [backend-launcher](backend-launcher) script. You can do so by opening up
 a terminal, navigating to this directory and running the following command:

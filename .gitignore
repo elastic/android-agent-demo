@@ -87,3 +87,4 @@ docs/.artifacts
 
 # start-local environment
 elastic-start-local/
+edot-collector-config*.yaml

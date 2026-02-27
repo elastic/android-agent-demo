@@ -56,23 +56,9 @@ es_wait_for_item() {
   echo ""
 }
 
-resolve_service_host() {
-  local gateway_ip
-  gateway_ip=$(docker network inspect elastic-start-local_default \
-    --format '{{(index .IPAM.Config 0).Gateway}}' 2>/dev/null || true)
-  if [ -n "$gateway_ip" ] && nc -z "$gateway_ip" 4318 2>/dev/null; then
-    echo "$gateway_ip"
-  else
-    echo "10.0.2.2"
-  fi
-}
-
 launch_app() {
   local app_dir="$1"
-  local service_host
-  service_host=$(resolve_service_host)
-  echo "Building APK with serviceHost=$service_host"
-  "$app_dir/gradlew" -p "$app_dir" :app:assembleRelease -PserviceHost="$service_host"
+  "$app_dir/gradlew" -p "$app_dir" :app:assembleRelease
   adb install -r "$app_dir"/app/build/outputs/apk/release/app-release.apk
   adb shell am start -n co.elastic.otel.android.demo/.ui.MainActivity
 }
@@ -125,18 +111,10 @@ ES_LOCAL_API_KEY=$2
 current_dir=$(pwd)
 repo_root="${current_dir%/.github*}"
 
-service_host=$(resolve_service_host)
-echo "Resolved serviceHost=$service_host (used by the Android app to reach Docker services)"
-
 # Connectivity diagnostics
 echo "=== Connectivity diagnostics ==="
-echo "Checking EDOT Collector port 4318..."
-nc -z localhost 4318 && echo "  localhost:4318: OK" || echo "  localhost:4318: FAILED"
-nc -z "$service_host" 4318 && echo "  ${service_host}:4318: OK" || echo "  ${service_host}:4318: FAILED"
-echo "Checking backend port 8080..."
-nc -z localhost 8080 && echo "  localhost:8080: OK" || echo "  localhost:8080: FAILED"
-nc -z "$service_host" 8080 && echo "  ${service_host}:8080: OK" || echo "  ${service_host}:8080: FAILED"
-echo "Docker containers:"
+nc -z localhost 4318 && echo "  localhost:4318 (collector): OK" || echo "  localhost:4318 (collector): FAILED"
+nc -z localhost 8080 && echo "  localhost:8080 (backend): OK" || echo "  localhost:8080 (backend): FAILED"
 docker ps --format '  {{.Names}}\t{{.Status}}\t{{.Ports}}' 2>/dev/null || true
 echo "=== End diagnostics ==="
 

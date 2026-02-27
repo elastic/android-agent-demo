@@ -48,10 +48,10 @@ errors are captured and correlated.
 > [!NOTE]
 > The reason why is recommended using an emulator is because the
 > endpoints set [here](app/src/main/java/co/elastic/otel/android/demo/MyApp.kt) and
-> [here](app/src/main/java/co/elastic/otel/android/demo/network/WeatherRestManager.kt) default to
-> the emulator's localhost IP ([10.0.2.2](https://developer.android.com/studio/run/emulator-networking#networkaddresses)).
-> If you want to use a real device, override the host at build time:
-> `./gradlew :app:assembleRelease -PserviceHost=<your-machine-ip>`
+> [here](app/src/main/java/co/elastic/otel/android/demo/network/WeatherRestManager.kt) point to
+> local services via the emulator's localhost IP ([10.0.2.2](https://developer.android.com/studio/run/emulator-networking#networkaddresses)).
+> If you wanted to use a real device, you'd need to replace the `10.0.2.2` host by the one of the
+> machine where you'll start the services mentioned in the steps below.
 
 ### Step 1: Setting up Elasticsearch, Kibana and the EDOT Collector
 

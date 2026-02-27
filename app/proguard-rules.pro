@@ -1,0 +1,1 @@
+-keep class io.opentelemetry.api.incubator.** { *; }

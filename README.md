@@ -9,6 +9,7 @@ service based on Spring Boot.
 - [Components](#components)
   * [Backend service](#backend-service)
   * [Android application](#android-application)
+  * [EDOT Collector](#edot-collector)
 - [How to run](#how-to-run)
   * [Prerequisites](#prerequisites)
   * [Step 1: Setting up Elasticsearch, Kibana and the EDOT Collector](#step-1-setting-up-elasticsearch-kibana-and-the-edot-collector)
@@ -34,6 +35,14 @@ and also a button that takes you to the second one, where you'll see the selecte
 temperature. If you pick a non-European city on the first screen, you'll get an error from the
 (local) backend when you head to the second screen. This is to demonstrate how network and backend
 errors are captured and correlated.
+
+### EDOT Collector
+
+The [EDOT Collector](https://www.elastic.co/docs/reference/opentelemetry/edot-collector/) (Elastic
+Distribution of the OpenTelemetry Collector) receives telemetry data from both the Android
+application and the backend service and forwards it to Elasticsearch for storage and analysis. In
+this demo, it is set up automatically as part of [Step 1](#step-1-setting-up-elasticsearch-kibana-and-the-edot-collector)
+via start-local.
 
 ## How to run
 

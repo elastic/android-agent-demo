@@ -1,6 +1,6 @@
 $BaseDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
 
-& "$BaseDir\gradlew.bat" ":backend:bootJar"
+& "$BaseDir\gradlew.bat" "-p" "$BaseDir" ":backend:bootJar"
 
 docker rm -f weather-backend 2>$null
 docker build -t weather-backend "$BaseDir\backend"

@@ -110,6 +110,17 @@ ES_LOCAL_URL=$1
 ES_LOCAL_API_KEY=$2
 current_dir=$(pwd)
 repo_root="${current_dir%/.github*}"
+
+# Connectivity diagnostics
+echo "=== Connectivity diagnostics ==="
+echo "Checking EDOT Collector port 4318 from host..."
+nc -z localhost 4318 && echo "  Host -> localhost:4318: OK" || echo "  Host -> localhost:4318: FAILED"
+echo "Checking backend port 8080 from host..."
+nc -z localhost 8080 && echo "  Host -> localhost:8080: OK" || echo "  Host -> localhost:8080: FAILED"
+echo "Docker containers:"
+docker ps --format '  {{.Names}}\t{{.Status}}\t{{.Ports}}' 2>/dev/null || true
+echo "=== End diagnostics ==="
+
 launch_app "$repo_root"
 
 # Trigger a backend request to generate backend telemetry

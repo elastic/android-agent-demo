@@ -9,13 +9,11 @@ service based on Spring Boot.
 - [Components](#components)
   * [Backend service](#backend-service)
   * [Android application](#android-application)
-  * [EDOT Collector](#edot-collector)
 - [How to run](#how-to-run)
   * [Prerequisites](#prerequisites)
-  * [Step 1: Setting your Elasticsearch properties](#step-1-setting-your-elasticsearch-properties)
-  * [Step 2: Launching the EDOT Collector](#step-2-launching-the-edot-collector)
-  * [Step 3: Launching the backend service](#step-3-launching-the-backend-service)
-  * [Step 4: Launch the Android application](#step-4-launch-the-android-application)
+  * [Step 1: Setting up Elasticsearch, Kibana and the EDOT Collector](#step-1-setting-up-elasticsearch-kibana-and-the-edot-collector)
+  * [Step 2: Launching the backend service](#step-2-launching-the-backend-service)
+  * [Step 3: Launch the Android application](#step-3-launch-the-android-application)
 - [Analyzing the data](#analyzing-the-data)
 
 ## Components
@@ -32,29 +30,17 @@ use case.
 ### Android application
 
 Located in the [app](app) module. The first screen will have a dropdown list with some city names
-and also a button that takes you to the second one, where you’ll see the selected city’s current
-temperature. If you pick a non-European city on the first screen, you’ll get an error from the
+and also a button that takes you to the second one, where you'll see the selected city's current
+temperature. If you pick a non-European city on the first screen, you'll get an error from the
 (local) backend when you head to the second screen. This is to demonstrate how network and backend
 errors are captured and correlated.
-
-### EDOT Collector
-
-It collects telemetry from both the application and backend service and stores it in Elasticsearch.
-The [edot-collector](edot-collector) module in this project is a helper tool that takes care of
-setting up an EDOT Collector for testing purposes. Refer to
-the [EDOT Collector](https://www.elastic.co/docs/reference/opentelemetry/edot-collector/) docs for
-more information.
 
 ## How to run
 
 ### Prerequisites
 
 * Java 17 or higher.
-* An Elasticsearch + Kibana setup with version `9.2.0` or higher. If you don't have one yet, you
-  can
-  quickly create it with [start-local](https://github.com/elastic/start-local/).
-* An Elasticsearch API Key. Take a look at how to create
-  one [here](https://www.elastic.co/docs/deploy-manage/api-keys/elasticsearch-api-keys#create-api-key).
+* [Docker](https://www.docker.com/) or [Podman](https://podman.io/).
 * An [Android emulator](https://developer.android.com/studio/run/emulator#get-started).
 
 > [!NOTE]
@@ -65,52 +51,34 @@ more information.
 > If you wanted to use a real device, you'd need to replace the `10.0.2.2` host by the one of the
 > machine where you'll start the services mentioned in the steps below.
 
-### Step 1: Setting your Elasticsearch properties
+### Step 1: Setting up Elasticsearch, Kibana and the EDOT Collector
 
-You must set your Elasticsearch endpoint URL
-and [API Key](https://www.elastic.co/docs/deploy-manage/api-keys/elasticsearch-api-keys#create-api-key)
-into the [elasticsearch.properties](elasticsearch.properties) file.
-
-```properties
-endpoint=YOUR_ELASTICSEARCH_ENDPOINT
-api_key=YOUR_ELASTICSEARCH_API_KEY
-```
-
-Replace `YOUR_ELASTICSEARCH_ENDPOINT` and `YOUR_ELASTICSEARCH_API_KEY` with the respective values.
-
-### Step 2: Launching the EDOT Collector
-
-We're going to use the `edot-collector-launcher` script, which will:
-
-* Download the latest EDOT Collector build.
-* Create
-  a [configuration file](https://www.elastic.co/docs/reference/opentelemetry/edot-collector/config/default-config-standalone#gateway-mode)
-  using the values from
-  the [elasticsearch.properties](elasticsearch.properties) file.
-* Launch the EDOT Collector service and leave it running until manually stopped.
-
-Once the EDOT Collector is running, its endpoint will be `http://localhost:4318`.
-
-You don't need to set it for this demo application, as it has already been
-done [here](app/src/main/java/co/elastic/otel/android/demo/MyApp.kt). So, for this demo
-application use case, once the EDOT Collector is running, you're ready to go to the next step.
-
-#### For Windows
-
-Execute the [edot-collector-launcher.ps1](edot-collector-launcher.ps1) script with PowerShell. You
-can learn how to do so by taking a look
-at [this guide](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_scripts#how-to-run-a-script).
-
-#### For Linux and MacOS
-
-Execute the [edot-collector-launcher](edot-collector-launcher) script. You can do so by opening up
-a terminal, navigating to this directory and running the following command:
+We use [start-local](https://github.com/elastic/start-local/) to spin up Elasticsearch, Kibana and
+the EDOT Collector locally with a single command. Run the following:
 
 ```shell
-./edot-collector-launcher
+curl -fsSL https://elastic.co/start-local | sh -s -- --edot
 ```
 
-### Step 3: Launching the backend service
+> [!NOTE]
+> If you are using Podman instead of Docker, use
+> `curl -fsSL https://elastic.co/start-local-podman | sh -s -- --edot`
+
+This creates an `elastic-start-local` folder and starts all three services. Once it finishes, the
+EDOT Collector endpoint will be `http://localhost:4318`.
+
+You don't need to configure the EDOT Collector endpoint for this demo application, as it has already
+been set [here](app/src/main/java/co/elastic/otel/android/demo/MyApp.kt).
+
+You can stop and start the services later with the scripts in the `elastic-start-local` folder:
+
+```shell
+cd elastic-start-local
+./stop.sh   # stop the services
+./start.sh  # start them again
+```
+
+### Step 2: Launching the backend service
 
 We're going to use the `backend-launcher` script, which will build and run the Spring Boot backend
 service.
@@ -137,14 +105,14 @@ a terminal, navigating to this directory and running the following command:
 ./backend-launcher
 ```
 
-### Step 4: Launch the Android application
+### Step 3: Launch the Android application
 
 Open up this project with Android Studio
 and [run the application](https://developer.android.com/studio/run) in
 an Android Emulator. Once everything is running, navigate around in the app to generate
 some load that we would like to observe in Elastic APM. So, select a city, click Next and repeat it
 multiple times. Please, also make sure to select New York at least once. You will see that the
-weather forecast won’t work for New York as the city.
+weather forecast won't work for New York as the city.
 
 ## Analyzing the data
 

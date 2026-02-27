@@ -120,6 +120,17 @@ echo "=== End diagnostics ==="
 
 launch_app "$repo_root"
 
+# Capture logcat in the background for diagnostics
+logcat_file="$repo_root/build/e2e/logcat.txt"
+mkdir -p "$(dirname "$logcat_file")"
+adb logcat -d > "$logcat_file" 2>&1 || true
+adb logcat -c 2>/dev/null || true
+adb logcat > "$logcat_file" 2>&1 &
+logcat_pid=$!
+
+# Give the app a moment to initialize and export telemetry
+sleep 10
+
 # Trigger a backend request to generate backend telemetry
 echo "Triggering backend request..."
 curl -sS --retry 5 --retry-connrefused --retry-delay 2 "http://localhost:8080/v1/forecast?city=Berlin" > /dev/null
@@ -133,6 +144,10 @@ backend_span_query='{"query":{"term":{"service.name":{"value":"weather-backend"}
 app_span=$(es_wait_for_item "traces-*" "$app_span_query" "Android app spans")
 app_log=$(es_wait_for_item "logs-*" "$app_log_query" "Android app logs")
 backend_span=$(es_wait_for_item "traces-*" "$backend_span_query" "Backend spans")
+
+# Stop logcat capture
+kill "$logcat_pid" 2>/dev/null || true
+wait "$logcat_pid" 2>/dev/null || true
 
 # Storing ES responses
 es_build_dir="$repo_root/build/e2e"

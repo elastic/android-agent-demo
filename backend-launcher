@@ -1,0 +1,15 @@
+#!/bin/sh
+set -e
+
+BASEDIR=$(dirname "$0")
+
+"$BASEDIR/gradlew" :backend:bootJar
+
+docker rm -f weather-backend 2>/dev/null || true
+docker build -t weather-backend "$BASEDIR/backend"
+exec docker run --name weather-backend \
+  --network elastic-start-local_default \
+  -p 8080:8080 \
+  -e OTEL_SERVICE_NAME=weather-backend \
+  -e OTEL_EXPORTER_OTLP_ENDPOINT=http://edot-collector:4318 \
+  weather-backend

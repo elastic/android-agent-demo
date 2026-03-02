@@ -9,8 +9,7 @@ elastic-start-local:  ## Start ES + Kibana + EDOT Collector locally
 
 .PHONY: start-backend
 start-backend: elastic-start-local  ## Build and start the backend service in Docker
-	$(repo_root)/backend-launcher &
-	./await_port.sh 8080 120
+	$(repo_root)/backend-launcher
 
 .PHONY: start-env
 start-env: elastic-start-local start-backend  ## Start the full environment

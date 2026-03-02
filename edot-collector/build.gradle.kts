@@ -65,7 +65,7 @@ abstract class FindEdotCollectorVersion : DefaultTask() {
         val semverPattern = Regex("^\\d+\\.\\d+\\.\\d+\$")
         val client = HttpClient.newHttpClient()
         val request = HttpRequest.newBuilder()
-            .uri(URI.create("https://artifacts.elastic.co/releases/stack.json"))
+            .uri(URI.create("https://elastic-release-api.s3.us-west-2.amazonaws.com/public/past-releases.json"))
             .build()
         val response = client.send(request, HttpResponse.BodyHandlers.ofString())
         val moshi = Moshi.Builder()

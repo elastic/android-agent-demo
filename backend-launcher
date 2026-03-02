@@ -2,15 +2,34 @@
 set -e
 
 BASEDIR=$(dirname "$0")
+CONTAINER_NAME="weather-backend"
+TIMEOUT=60
 
 "$BASEDIR/gradlew" -p "$BASEDIR" :backend:bootJar
 
-docker rm -f weather-backend 2>/dev/null || true
-docker build -t weather-backend "$BASEDIR/backend"
+docker rm -f "$CONTAINER_NAME" 2>/dev/null || true
+docker build -t "$CONTAINER_NAME" "$BASEDIR/backend"
 
-exec docker run --name weather-backend \
+docker run -d --name "$CONTAINER_NAME" \
   --network elastic-start-local_default \
   -p 8080:8080 \
   -e OTEL_SERVICE_NAME=weather-backend \
   -e OTEL_EXPORTER_OTLP_ENDPOINT=http://edot-collector:4318 \
-  weather-backend
+  "$CONTAINER_NAME"
+
+echo "Waiting for $CONTAINER_NAME to be ready..."
+start_time=$(date +%s)
+until curl -s -o /dev/null -w '' http://localhost:8080 2>/dev/null; do
+  elapsed=$(( $(date +%s) - start_time ))
+  if [ "$elapsed" -ge "$TIMEOUT" ]; then
+    echo "Error: $CONTAINER_NAME did not become ready within ${TIMEOUT}s"
+    echo "Container logs:"
+    docker logs "$CONTAINER_NAME"
+    exit 1
+  fi
+  sleep 1
+done
+
+echo "$CONTAINER_NAME is running on http://localhost:8080"
+echo "Run 'docker logs -f $CONTAINER_NAME' to see logs"
+echo "Run 'docker stop $CONTAINER_NAME' to stop the service"

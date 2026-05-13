@@ -53,14 +53,23 @@ class MainActivity : AppCompatActivity() {
               .getMeter("metricscope")
               .counterBuilder("button.click.count")
               .build()
-      binding.fab.setOnClickListener { view ->
+      binding.fab.setOnClickListener {
         counter.add(1)
         agent.log(
-            "Button click",
-            attributes = Attributes.builder().put("activity.name", "MainActivity").build(),
+            "Crash button click",
+            attributes =
+                Attributes.builder()
+                    .put("activity.name", "MainActivity")
+                    .put("button.action", "crash")
+                    .build(),
         )
+        triggerDemoCrash()
       }
     }
+  }
+
+  private fun triggerDemoCrash() {
+    throw RuntimeException(getString(R.string.demo_crash_message))
   }
 
   override fun onSupportNavigateUp(): Boolean {

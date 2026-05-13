@@ -169,9 +169,6 @@ nc -z localhost 8080 && echo "  localhost:8080 (backend): OK" || echo "  localho
 docker ps --format '  {{.Names}}\t{{.Status}}\t{{.Ports}}' 2>/dev/null || true
 echo "=== End diagnostics ==="
 
-test_start=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-echo "Collecting telemetry created after ${test_start}"
-
 launch_app "$repo_root"
 
 # Capture logcat in the background for diagnostics
@@ -191,9 +188,9 @@ curl -sS --retry 5 --retry-connrefused --retry-delay 2 "http://localhost:8080/v1
 
 echo "Waiting for telemetry data to be indexed..."
 
-app_span_query=$(jq -cn --arg test_start "$test_start" '{"query":{"bool":{"filter":[{"term":{"service.name":{"value":"weather-demo-app"}}},{"term":{"name":{"value":"Creating app"}}},{"range":{"@timestamp":{"gte":$test_start}}}]}}}')
-app_log_query=$(jq -cn --arg test_start "$test_start" '{"query":{"bool":{"filter":[{"term":{"service.name":{"value":"weather-demo-app"}}},{"match":{"body.text":"During app creation"}},{"range":{"@timestamp":{"gte":$test_start}}}]}}}')
-backend_span_query=$(jq -cn --arg test_start "$test_start" '{"query":{"bool":{"filter":[{"term":{"service.name":{"value":"weather-backend"}}},{"range":{"@timestamp":{"gte":$test_start}}}]}}}')
+app_span_query='{"query":{"bool":{"filter":[{"term":{"service.name":{"value":"weather-demo-app"}}},{"term":{"name":{"value":"Creating app"}}}]}}}'
+app_log_query='{"query":{"bool":{"filter":[{"term":{"service.name":{"value":"weather-demo-app"}}},{"match":{"body.text":"During app creation"}}]}}}'
+backend_span_query='{"query":{"term":{"service.name":{"value":"weather-backend"}}}}'
 
 app_span=$(es_wait_for_item "traces-*" "$app_span_query" "Android app spans")
 app_log=$(es_wait_for_item "logs-*" "$app_log_query" "Android app logs")

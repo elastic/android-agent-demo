@@ -84,3 +84,6 @@ html_docs
 docs/.artifacts
 
 .DS_Store
+
+# start-local environment
+elastic-start-local/

@@ -51,7 +51,7 @@ class MainActivity : AppCompatActivity() {
           agent
               .getOpenTelemetry()
               .getMeter("metricscope")
-              .counterBuilder("button click count")
+              .counterBuilder("button.click.count")
               .build()
       binding.fab.setOnClickListener { view ->
         counter.add(1)

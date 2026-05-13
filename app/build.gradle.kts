@@ -4,6 +4,7 @@ plugins {
     id("com.android.application")
     id("co.elastic.otel.android.agent") version "1.6.0"
     id("co.elastic.otel.android.instrumentation.okhttp") version "1.6.0"
+    id("co.elastic.otel.android.instrumentation.crash") version "1.6.0"
 }
 
 android {
@@ -14,7 +15,7 @@ android {
         applicationId = "co.elastic.otel.android.demo"
         minSdk = 26
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.0.1"
     }
 
     buildTypes {

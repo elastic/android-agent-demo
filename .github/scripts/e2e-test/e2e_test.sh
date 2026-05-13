@@ -87,12 +87,81 @@ assert_equals() {
   fi
 }
 
+assert_not_empty() {
+  local value="$1"
+  local message="$2"
+  if [ -z "$value" ]; then
+    echo "$message"
+    exit 1
+  fi
+}
+
 cleanup_logcat() {
   if [ -n "${logcat_pid:-}" ]; then
     kill "$logcat_pid" 2>/dev/null || true
     wait "$logcat_pid" 2>/dev/null || true
     logcat_pid=""
   fi
+}
+
+tap_crash_button() {
+  local description
+  description="Crash the app to demonstrate crash reporting"
+
+  adb shell uiautomator dump /sdcard/window.xml >/dev/null
+
+  local bounds
+  bounds=$(python3 - "$description" <<'PY'
+import subprocess
+import sys
+import xml.etree.ElementTree as ET
+
+description = sys.argv[1]
+xml = subprocess.check_output(["adb", "exec-out", "cat", "/sdcard/window.xml"]).decode(
+    "utf-8", "ignore"
+)
+root = ET.fromstring(xml)
+for node in root.iter("node"):
+    if node.attrib.get("content-desc") == description:
+        print(node.attrib["bounds"])
+        sys.exit(0)
+sys.exit(1)
+PY
+)
+
+  local coords
+  coords=$(echo "$bounds" | sed -E 's/\[([0-9]+),([0-9]+)\]\[([0-9]+),([0-9]+)\]/\1 \2 \3 \4/')
+  read -r left top right bottom <<< "$coords"
+  adb shell input tap "$(((left + right) / 2))" "$(((top + bottom) / 2))"
+}
+
+trigger_crash_and_relaunch_app() {
+  echo "Triggering intentional app crash..."
+  cleanup_logcat
+  adb logcat -c 2>/dev/null || true
+
+  tap_crash_button
+
+  for i in $(seq 1 10); do
+    sleep 2
+    adb logcat -d > "$logcat_file" 2>&1
+    if grep -q "AndroidRuntime.*FATAL EXCEPTION" "$logcat_file"; then
+      echo "Crash detected in logcat"
+      break
+    fi
+    echo "  waiting for crash in logcat... ($i/10)" >&2
+  done
+
+  if ! grep -q "AndroidRuntime.*FATAL EXCEPTION" "$logcat_file"; then
+    echo "FAIL: No intentional crash found in logcat"
+    exit 1
+  fi
+
+  echo "Re-launching app to export buffered crash data..."
+  sleep 3
+  adb shell am force-stop co.elastic.otel.android.demo 2>/dev/null || true
+  sleep 2
+  adb shell am start -n co.elastic.otel.android.demo/.ui.MainActivity
 }
 
 print_failure_diagnostics() {
@@ -151,6 +220,21 @@ validate_backend_span() {
   assert_equals "weather-backend" "$service_name"
 }
 
+validate_crash_event() {
+  local crash_event
+  crash_event=$(require "$1")
+  local event_name
+  event_name=$(echo "$crash_event" | jq -r '._source.attributes."otel.event.name" // ._source.event_name // empty')
+  local exception_type
+  exception_type=$(echo "$crash_event" | jq -r '._source.attributes."exception.type" // empty')
+  local stacktrace
+  stacktrace=$(echo "$crash_event" | jq -r '._source.attributes."exception.stacktrace" // empty')
+
+  assert_equals "device.crash" "$event_name"
+  assert_equals "java.lang.RuntimeException" "$exception_type"
+  assert_not_empty "$stacktrace" "Crash event has no exception.stacktrace field"
+}
+
 # Main execution
 if [ "$#" -ne 2 ] || [ -z "${1:-}" ] || [ -z "${2:-}" ]; then
   echo "Usage: $0 <ES_LOCAL_URL> <ES_LOCAL_API_KEY>" >&2
@@ -191,13 +275,14 @@ echo "Waiting for telemetry data to be indexed..."
 app_span_query='{"query":{"bool":{"filter":[{"term":{"service.name":{"value":"weather-demo-app"}}},{"term":{"name":{"value":"Creating app"}}}]}}}'
 app_log_query='{"query":{"bool":{"filter":[{"term":{"service.name":{"value":"weather-demo-app"}}},{"match":{"body.text":"During app creation"}}]}}}'
 backend_span_query='{"query":{"term":{"service.name":{"value":"weather-backend"}}}}'
+crash_event_query='{"query":{"bool":{"filter":[{"term":{"service.name":{"value":"weather-demo-app"}}}],"should":[{"term":{"event_name":{"value":"device.crash"}}},{"term":{"attributes.otel.event.name":{"value":"device.crash"}}}],"minimum_should_match":1}}}'
 
 app_span=$(es_wait_for_item "traces-*" "$app_span_query" "Android app spans")
 app_log=$(es_wait_for_item "logs-*" "$app_log_query" "Android app logs")
 backend_span=$(es_wait_for_item "traces-*" "$backend_span_query" "Backend spans")
 
-# Stop logcat capture
-cleanup_logcat
+trigger_crash_and_relaunch_app
+crash_event=$(es_wait_for_item "logs-*" "$crash_event_query" "Android app crash event")
 
 # Storing ES responses
 es_build_dir="$repo_root/build/e2e"
@@ -205,6 +290,7 @@ mkdir -p "$es_build_dir"
 echo "$app_span" > "$es_build_dir/app_span.json"
 echo "$app_log" > "$es_build_dir/app_log.json"
 echo "$backend_span" > "$es_build_dir/backend_span.json"
+echo "$crash_event" > "$es_build_dir/crash_event.json"
 
 # Validate data was found
 failed=0
@@ -220,6 +306,10 @@ if [ -z "$backend_span" ]; then
   echo "FAIL: No backend spans found in ES within timeout"
   failed=1
 fi
+if [ -z "$crash_event" ]; then
+  echo "FAIL: No Android app crash event found in ES within timeout"
+  failed=1
+fi
 if [ "$failed" -eq 1 ]; then
   exit 1
 fi
@@ -232,5 +322,7 @@ validate_app_log "$app_log"
 # Validate backend telemetry
 echo "Validating backend span..."
 validate_backend_span "$backend_span"
+echo "Validating Android app crash event..."
+validate_crash_event "$crash_event"
 
 echo "E2E tests succeeded"

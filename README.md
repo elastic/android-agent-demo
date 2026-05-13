@@ -6,6 +6,15 @@ To showcase an end-to-end scenario including distributed tracing we'll instrumen
 weather application that comprises two Android UI fragments and a simple local backend
 service based on Spring Boot.
 
+By running it, you can explore how EDOT Android captures and correlates telemetry from a mobile app:
+
+* Distributed traces that connect Android user actions with backend HTTP requests.
+* Custom spans and logs from the Android app.
+* An intentional backend error path.
+* An intentional Android crash that appears in Kibana after relaunching the app.
+
+## Table of contents
+
 - [Components](#components)
   * [Backend service](#backend-service)
   * [Android application](#android-application)
@@ -34,7 +43,8 @@ Located in the [app](app) module. The first screen will have a dropdown list wit
 and also a button that takes you to the second one, where you'll see the selected city's current
 temperature. If you pick a non-European city on the first screen, you'll get an error from the
 (local) backend when you head to the second screen. This is to demonstrate how network and backend
-errors are captured and correlated.
+errors are captured and correlated. The floating action button intentionally crashes the app so you
+can also inspect Android crash reporting in Kibana.
 
 ### EDOT Collector
 
@@ -115,9 +125,13 @@ Open up this project with Android Studio
 and [run the application](https://developer.android.com/studio/run) in
 an Android Emulator. Once everything is running, navigate around in the app to generate
 some load that we would like to observe in Elastic APM. So, select a city, click Next and repeat it
-multiple times. To see the intentional error path, select New York in the Android app and tap **Next**. The backend
-rejects that city on purpose, which gives you an error trace to inspect and correlate with the
-Android-side request.
+multiple times. To see the intentional error path, select New York in the Android app and tap
+**Next**. The backend rejects that city on purpose, which gives you an error trace to inspect and
+correlate with the Android-side request.
+
+To demonstrate Android crash reporting, tap the floating crash button in the lower-right corner.
+The app will close intentionally. Tap **Open app again**, or launch it again from Android Studio or
+the emulator launcher, so the EDOT Android agent can export the buffered crash event.
 
 ## Analyzing the data
 

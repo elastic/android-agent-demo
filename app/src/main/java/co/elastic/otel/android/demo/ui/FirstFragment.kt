@@ -63,10 +63,6 @@ class FirstFragment : Fragment() {
         }
   }
 
-  private fun doCrash() {
-    throw RuntimeException("Some crash")
-  }
-
   override fun onDestroyView() {
     super.onDestroyView()
     _binding = null

@@ -2,6 +2,9 @@
 
 set -euo pipefail
 
+logcat_pid=""
+logcat_file=""
+
 require() {
   local value="$1"
   if [ -z "$value" ]; then
@@ -14,16 +17,26 @@ es_search() {
   local index="$1"
   local query="$2"
   local response
-  response=$(curl "${ES_LOCAL_URL}/$index/_search" -sS \
-   -H "Authorization: ApiKey ${ES_LOCAL_API_KEY}" \
-   -H "Content-Type: application/json" \
-   -d "$query"
-  )
+  if ! response=$(curl "${ES_LOCAL_URL}/$index/_search" -sS \
+    -H "Authorization: ApiKey ${ES_LOCAL_API_KEY}" \
+    -H "Content-Type: application/json" \
+    -d "$query"
+  ); then
+    echo "Failed to query Elasticsearch index pattern '${index}'" >&2
+    return 1
+  fi
 
-  response=$(require "$response")
+  if [ -z "$response" ]; then
+    echo "Elasticsearch returned an empty response for '${index}'" >&2
+    return 1
+  fi
 
   local hits
-  hits=$(echo "$response" | jq -r '.hits.total.value')
+  hits=$(echo "$response" | jq -r '.hits.total.value // empty')
+  if [ -z "$hits" ]; then
+    echo "Elasticsearch response did not include a hit count for '${index}'" >&2
+    return 1
+  fi
 
   if [ "$hits" -lt 1 ]; then
     echo ""
@@ -43,7 +56,9 @@ es_wait_for_item() {
 
   while [ $elapsed -lt $timeout ]; do
     local result
-    result=$(es_search "$index" "$query")
+    if ! result=$(es_search "$index" "$query"); then
+      return 1
+    fi
     if [ -n "$result" ]; then
       echo "$result"
       return 0
@@ -71,6 +86,37 @@ assert_equals() {
     exit 1
   fi
 }
+
+cleanup_logcat() {
+  if [ -n "${logcat_pid:-}" ]; then
+    kill "$logcat_pid" 2>/dev/null || true
+    wait "$logcat_pid" 2>/dev/null || true
+    logcat_pid=""
+  fi
+}
+
+print_failure_diagnostics() {
+  echo "=== Failure diagnostics ===" >&2
+  docker ps --format '  {{.Names}}\t{{.Status}}\t{{.Ports}}' >&2 2>/dev/null || true
+  echo "--- Last 200 weather-backend log lines ---" >&2
+  docker logs --tail 200 weather-backend >&2 2>/dev/null || true
+  if [ -n "${logcat_file:-}" ] && [ -f "$logcat_file" ]; then
+    echo "--- Last 200 logcat lines ---" >&2
+    tail -n 200 "$logcat_file" >&2 || true
+  fi
+  echo "=== End failure diagnostics ===" >&2
+}
+
+on_exit() {
+  local exit_code=$?
+  cleanup_logcat
+  if [ "$exit_code" -ne 0 ]; then
+    print_failure_diagnostics
+  fi
+  exit "$exit_code"
+}
+
+trap on_exit EXIT
 
 validate_app_span() {
   local span
@@ -106,6 +152,11 @@ validate_backend_span() {
 }
 
 # Main execution
+if [ "$#" -ne 2 ] || [ -z "${1:-}" ] || [ -z "${2:-}" ]; then
+  echo "Usage: $0 <ES_LOCAL_URL> <ES_LOCAL_API_KEY>" >&2
+  exit 1
+fi
+
 ES_LOCAL_URL=$1
 ES_LOCAL_API_KEY=$2
 current_dir=$(pwd)
@@ -117,6 +168,9 @@ nc -z localhost 4318 && echo "  localhost:4318 (collector): OK" || echo "  local
 nc -z localhost 8080 && echo "  localhost:8080 (backend): OK" || echo "  localhost:8080 (backend): FAILED"
 docker ps --format '  {{.Names}}\t{{.Status}}\t{{.Ports}}' 2>/dev/null || true
 echo "=== End diagnostics ==="
+
+test_start=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+echo "Collecting telemetry created after ${test_start}"
 
 launch_app "$repo_root"
 
@@ -137,17 +191,16 @@ curl -sS --retry 5 --retry-connrefused --retry-delay 2 "http://localhost:8080/v1
 
 echo "Waiting for telemetry data to be indexed..."
 
-app_span_query='{"query":{"bool":{"filter":[{"term":{"service.name":{"value":"weather-demo-app"}}},{"term":{"name":{"value":"Creating app"}}}]}}}'
-app_log_query='{"query":{"bool":{"filter":[{"term":{"service.name":{"value":"weather-demo-app"}}},{"match":{"body.text":"During app creation"}}]}}}'
-backend_span_query='{"query":{"term":{"service.name":{"value":"weather-backend"}}}}'
+app_span_query=$(jq -cn --arg test_start "$test_start" '{"query":{"bool":{"filter":[{"term":{"service.name":{"value":"weather-demo-app"}}},{"term":{"name":{"value":"Creating app"}}},{"range":{"@timestamp":{"gte":$test_start}}}]}}}')
+app_log_query=$(jq -cn --arg test_start "$test_start" '{"query":{"bool":{"filter":[{"term":{"service.name":{"value":"weather-demo-app"}}},{"match":{"body.text":"During app creation"}},{"range":{"@timestamp":{"gte":$test_start}}}]}}}')
+backend_span_query=$(jq -cn --arg test_start "$test_start" '{"query":{"bool":{"filter":[{"term":{"service.name":{"value":"weather-backend"}}},{"range":{"@timestamp":{"gte":$test_start}}}]}}}')
 
 app_span=$(es_wait_for_item "traces-*" "$app_span_query" "Android app spans")
 app_log=$(es_wait_for_item "logs-*" "$app_log_query" "Android app logs")
 backend_span=$(es_wait_for_item "traces-*" "$backend_span_query" "Backend spans")
 
 # Stop logcat capture
-kill "$logcat_pid" 2>/dev/null || true
-wait "$logcat_pid" 2>/dev/null || true
+cleanup_logcat
 
 # Storing ES responses
 es_build_dir="$repo_root/build/e2e"

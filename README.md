@@ -115,8 +115,9 @@ Open up this project with Android Studio
 and [run the application](https://developer.android.com/studio/run) in
 an Android Emulator. Once everything is running, navigate around in the app to generate
 some load that we would like to observe in Elastic APM. So, select a city, click Next and repeat it
-multiple times. Please, also make sure to select New York at least once. You will see that the
-weather forecast won't work for New York as the city.
+multiple times. To see the intentional error path, select New York in the Android app and tap **Next**. The backend
+rejects that city on purpose, which gives you an error trace to inspect and correlate with the
+Android-side request.
 
 ## Analyzing the data
 

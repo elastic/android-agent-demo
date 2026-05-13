@@ -1,3 +1,3 @@
-FROM eclipse-temurin:17-jdk@sha256:b04a8c5d46e210873ffd1af6ad5f4d62c69ed3a6736993556eae60bba1373a23
+FROM eclipse-temurin:21.0.11_10-jdk@sha256:b9142586f9712700c6c9e07adcedfb18608b1a3a056e4001423a3354adfa9d80
 COPY build/libs/backend.jar /app/backend.jar
 ENTRYPOINT ["java", "-jar", "/app/backend.jar"]

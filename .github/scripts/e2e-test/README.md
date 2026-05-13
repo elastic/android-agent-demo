@@ -5,14 +5,12 @@ documented in the repository root `README.md`.
 
 ## What the test validates
 
-The CI workflow uses `make -C .github/scripts/e2e-test start-env` to start Elasticsearch, Kibana,
-the EDOT Collector, and the backend service. It then uses
-`make -C .github/scripts/e2e-test run-tests` inside an Android emulator runner.
+The CI workflow uses `make -C .github/scripts/e2e-test start-env` to start Elasticsearch, the EDOT
+Collector, and the backend service. It then uses `make -C .github/scripts/e2e-test run-tests`
+inside an Android emulator runner.
 
 The test path validates that:
 
-* `start-local --edot` provides the Elastic stack and EDOT Collector.
-* The backend Docker container starts on the `elastic-start-local_default` network.
 * The Android release APK builds successfully, including the minified R8 path.
 * The APK installs and launches on the emulator.
 * A backend request to `GET /v1/forecast?city=Berlin` produces backend telemetry.

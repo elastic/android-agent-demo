@@ -45,7 +45,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-      - name: Start environment (ES + Kibana + EDOT Collector + Backend)
+      - name: Start environment (ES + EDOT Collector + Backend)
         run: make -C .github/scripts/e2e-test start-env
       - name: Enable KVM for Android emulator
         run: |

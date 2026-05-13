@@ -5,11 +5,11 @@ SHELL = /bin/bash
 repo_root := $(shell cd $(dir $(lastword $(MAKEFILE_LIST))) && git rev-parse --show-toplevel)
 
 .PHONY: elastic-start-local
-elastic-start-local: elastic-start-local/.env  ## Start ES + Kibana + EDOT Collector locally
+elastic-start-local: elastic-start-local/.env  ## Start ES + EDOT Collector locally
 
 elastic-start-local/.env:
 	set -euo pipefail; \
-	curl -fsSL https://elastic.co/start-local | sh -s -- --edot; \
+	curl -fsSL https://elastic.co/start-local | sh -s -- --esonly --edot; \
 	test -f elastic-start-local/.env
 
 .PHONY: start-backend

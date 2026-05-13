@@ -6,6 +6,15 @@ To showcase an end-to-end scenario including distributed tracing we'll instrumen
 weather application that comprises two Android UI fragments and a simple local backend
 service based on Spring Boot.
 
+By running it, you can explore how EDOT Android captures and correlates telemetry from a mobile app:
+
+* Distributed traces that connect Android user actions with backend HTTP requests.
+* Custom spans and logs from the Android app.
+* An intentional backend error path.
+* An intentional Android crash that appears in Kibana after relaunching the app.
+
+## Table of contents
+
 - [Components](#components)
   * [Backend service](#backend-service)
   * [Android application](#android-application)

@@ -79,7 +79,7 @@ fun ForecastScreen(city: String, onBack: () -> Unit, modifier: Modifier = Modifi
   Box(modifier = modifier.fillMaxSize()) {
     when (val state = uiState) {
       ForecastUiState.Loading -> LoadingContent(city)
-      is ForecastUiState.Success -> SuccessContent(state.temperatureC)
+      is ForecastUiState.Success -> SuccessContent(city, state.temperatureC)
       is ForecastUiState.Error -> ErrorContent(city = state.city, onBack = onBack)
     }
   }
@@ -103,7 +103,7 @@ private fun LoadingContent(city: String) {
 }
 
 @Composable
-private fun SuccessContent(temperatureC: Double) {
+private fun SuccessContent(city: String, temperatureC: Double) {
   val (startColor, endColor) = gradientColors(temperatureC)
   Box(
     modifier =
@@ -124,6 +124,12 @@ private fun SuccessContent(temperatureC: Double) {
         tint = Color.White,
       )
       Spacer(Modifier.height(16.dp))
+      Text(
+        text = city,
+        style = MaterialTheme.typography.headlineMedium,
+        color = Color.White,
+      )
+      Spacer(Modifier.height(8.dp))
       Text(
         text = "%.1f °C".format(temperatureC),
         style = MaterialTheme.typography.displayLarge,
@@ -215,19 +221,19 @@ private fun LoadingPreview() {
 @Preview(showBackground = true)
 @Composable
 private fun SuccessWarmPreview() {
-  DemoWeatherAppTheme { SuccessContent(28.0) }
+  DemoWeatherAppTheme { SuccessContent("Berlin", 28.0) }
 }
 
 @Preview(showBackground = true)
 @Composable
 private fun SuccessMildPreview() {
-  DemoWeatherAppTheme { SuccessContent(15.0) }
+  DemoWeatherAppTheme { SuccessContent("London", 15.0) }
 }
 
 @Preview(showBackground = true)
 @Composable
 private fun SuccessColdPreview() {
-  DemoWeatherAppTheme { SuccessContent(-5.0) }
+  DemoWeatherAppTheme { SuccessContent("Paris", -5.0) }
 }
 
 @Preview(showBackground = true)

@@ -21,7 +21,6 @@ package co.elastic.otel.android.demo
 import android.app.Application
 import co.elastic.otel.android.ElasticApmAgent
 import co.elastic.otel.android.api.ElasticOtelAgent
-import co.elastic.otel.android.extensions.log
 import co.elastic.otel.android.extensions.span
 import com.google.android.material.color.DynamicColors
 
@@ -44,7 +43,6 @@ class MyApp : Application() {
         .build()
 
     agent.span("Creating app") {
-      agent.log("During app creation")
       // All the app initialization tasks
     }
   }

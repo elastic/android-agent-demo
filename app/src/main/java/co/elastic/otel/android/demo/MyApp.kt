@@ -43,6 +43,9 @@ class MyApp : Application() {
         .setServiceName("weather-demo-app")
         .build()
 
-    agent.span("Creating app") { agent.log("During app creation") }
+    agent.span("Creating app") {
+      agent.log("During app creation")
+      // All the app initialization tasks
+    }
   }
 }

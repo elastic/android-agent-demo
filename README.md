@@ -39,12 +39,12 @@ use case.
 
 ### Android application
 
-Located in the [app](app) module. The first screen has a dropdown list of city
-names and a button that takes you to the second one, where you'll see the selected city's current
-temperature. The second screen shows the selected city's temperature. If you pick a non-European city on the first screen, you'll get an error from the
-(local) backend when you head to the second screen. This is to demonstrate how network and backend
-errors are captured and correlated. The floating action button intentionally crashes the app so you
-can also inspect Android crash reporting in Kibana.
+Located in the [app](app) module. The first screen has a dropdown list of city names and a button
+that takes you to the second one, where you'll see the selected city's current temperature. If you
+pick a non-European city on the first screen, you'll get an error from the (local) backend when you
+head to the second screen. This is to demonstrate how network and backend errors are captured and
+correlated. The floating action button intentionally crashes the app so you can also inspect Android
+crash reporting in Kibana.
 
 ### EDOT Collector
 

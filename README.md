@@ -3,8 +3,8 @@
 This is a demo Android application to show how the [EDOT Android agent](https://github.com/elastic/apm-agent-android) works.
 
 To showcase an end-to-end scenario including distributed tracing we'll instrument this demo
-weather application that comprises two Android UI fragments and a simple local backend
-service based on Spring Boot.
+weather application that comprises two Android screens and a simple local backend service based on
+Spring Boot.
 
 By running it, you can explore how EDOT Android captures and correlates telemetry from a mobile app:
 
@@ -39,9 +39,9 @@ use case.
 
 ### Android application
 
-Located in the [app](app) module. The first screen will have a dropdown list with some city names
-and also a button that takes you to the second one, where you'll see the selected city's current
-temperature. If you pick a non-European city on the first screen, you'll get an error from the
+Located in the [app](app) module. The first screen has a dropdown list of city
+names and a button that takes you to the second one, where you'll see the selected city's current
+temperature. The second screen shows the selected city's temperature. If you pick a non-European city on the first screen, you'll get an error from the
 (local) backend when you head to the second screen. This is to demonstrate how network and backend
 errors are captured and correlated. The floating action button intentionally crashes the app so you
 can also inspect Android crash reporting in Kibana.

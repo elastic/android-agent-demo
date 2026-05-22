@@ -54,8 +54,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import co.elastic.otel.android.demo.MyApp.Companion.agent
 import co.elastic.otel.android.demo.network.WeatherRestManager
 import co.elastic.otel.android.demo.ui.theme.DemoWeatherAppTheme
+import co.elastic.otel.android.extensions.log
+import io.opentelemetry.api.logs.Severity
 
 @Composable
 fun ForecastScreen(city: String, onBack: () -> Unit, modifier: Modifier = Modifier) {
@@ -64,12 +67,13 @@ fun ForecastScreen(city: String, onBack: () -> Unit, modifier: Modifier = Modifi
   LaunchedEffect(city) {
     uiState = ForecastUiState.Loading
     uiState =
-        try {
-          val response = WeatherRestManager.getCurrentCityWeather(city)
-          ForecastUiState.Success(response.currentWeather.temperature)
-        } catch (e: Exception) {
-          ForecastUiState.Error(city)
-        }
+      try {
+        val response = WeatherRestManager.getCurrentCityWeather(city)
+        ForecastUiState.Success(response.currentWeather.temperature)
+      } catch (e: Exception) {
+        agent.log("Error while fetching forecast: ${e.message}", Severity.ERROR)
+        ForecastUiState.Error(city)
+      }
   }
 
   Box(modifier = modifier.fillMaxSize()) {
@@ -84,16 +88,16 @@ fun ForecastScreen(city: String, onBack: () -> Unit, modifier: Modifier = Modifi
 @Composable
 private fun LoadingContent(city: String) {
   Column(
-      modifier = Modifier.fillMaxSize(),
-      horizontalAlignment = Alignment.CenterHorizontally,
-      verticalArrangement = Arrangement.Center,
+    modifier = Modifier.fillMaxSize(),
+    horizontalAlignment = Alignment.CenterHorizontally,
+    verticalArrangement = Arrangement.Center,
   ) {
     CircularProgressIndicator()
     Spacer(Modifier.height(16.dp))
     Text(
-        text = "Fetching forecast for $city…",
-        style = MaterialTheme.typography.bodyLarge,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+      text = "Fetching forecast for $city…",
+      style = MaterialTheme.typography.bodyLarge,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
   }
 }
@@ -102,40 +106,42 @@ private fun LoadingContent(city: String) {
 private fun SuccessContent(temperatureC: Double) {
   val (startColor, endColor) = gradientColors(temperatureC)
   Box(
-      modifier =
-          Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(startColor, endColor))),
-      contentAlignment = Alignment.Center,
+    modifier =
+      Modifier
+        .fillMaxSize()
+        .background(Brush.verticalGradient(listOf(startColor, endColor))),
+    contentAlignment = Alignment.Center,
   ) {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-        modifier = Modifier.padding(24.dp),
+      horizontalAlignment = Alignment.CenterHorizontally,
+      verticalArrangement = Arrangement.Center,
+      modifier = Modifier.padding(24.dp),
     ) {
       Icon(
-          imageVector = weatherIcon(temperatureC),
-          contentDescription = null,
-          modifier = Modifier.size(96.dp),
-          tint = Color.White,
+        imageVector = weatherIcon(temperatureC),
+        contentDescription = null,
+        modifier = Modifier.size(96.dp),
+        tint = Color.White,
       )
       Spacer(Modifier.height(16.dp))
       Text(
-          text = "%.1f °C".format(temperatureC),
-          style = MaterialTheme.typography.displayLarge,
-          color = Color.White,
+        text = "%.1f °C".format(temperatureC),
+        style = MaterialTheme.typography.displayLarge,
+        color = Color.White,
       )
       Spacer(Modifier.height(8.dp))
       Text(
-          text = temperatureDescriptor(temperatureC),
-          style = MaterialTheme.typography.titleMedium,
-          color = Color.White.copy(alpha = 0.9f),
+        text = temperatureDescriptor(temperatureC),
+        style = MaterialTheme.typography.titleMedium,
+        color = Color.White.copy(alpha = 0.9f),
       )
       Spacer(Modifier.height(32.dp))
       val uriHandler = LocalUriHandler.current
       TextButton(onClick = { uriHandler.openUri("https://open-meteo.com/") }) {
         Text(
-            "Weather data by Open-Meteo.com",
-            color = Color.White.copy(alpha = 0.7f),
-            fontSize = 12.sp,
+          "Weather data by Open-Meteo.com",
+          color = Color.White.copy(alpha = 0.7f),
+          fontSize = 12.sp,
         )
       }
     }
@@ -145,28 +151,30 @@ private fun SuccessContent(temperatureC: Double) {
 @Composable
 private fun ErrorContent(city: String, onBack: () -> Unit) {
   Column(
-      modifier = Modifier.fillMaxSize().padding(32.dp),
-      horizontalAlignment = Alignment.CenterHorizontally,
-      verticalArrangement = Arrangement.Center,
+    modifier = Modifier
+      .fillMaxSize()
+      .padding(32.dp),
+    horizontalAlignment = Alignment.CenterHorizontally,
+    verticalArrangement = Arrangement.Center,
   ) {
     Icon(
-        imageVector = Icons.Outlined.ErrorOutline,
-        contentDescription = null,
-        modifier = Modifier.size(64.dp),
-        tint = MaterialTheme.colorScheme.error,
+      imageVector = Icons.Outlined.ErrorOutline,
+      contentDescription = null,
+      modifier = Modifier.size(64.dp),
+      tint = MaterialTheme.colorScheme.error,
     )
     Spacer(Modifier.height(16.dp))
     Text(
-        text = "Couldn't load forecast for $city",
-        style = MaterialTheme.typography.titleLarge,
-        textAlign = TextAlign.Center,
+      text = "Couldn't load forecast for $city",
+      style = MaterialTheme.typography.titleLarge,
+      textAlign = TextAlign.Center,
     )
     Spacer(Modifier.height(8.dp))
     Text(
-        text = "This city isn't supported by the local backend. Try Berlin, London, or Paris.",
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        textAlign = TextAlign.Center,
+      text = "This city isn't supported by the local backend. Try Berlin, London, or Paris.",
+      style = MaterialTheme.typography.bodyMedium,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+      textAlign = TextAlign.Center,
     )
     Spacer(Modifier.height(24.dp))
     OutlinedButton(onClick = onBack) { Text("Try another city") }
@@ -174,29 +182,29 @@ private fun ErrorContent(city: String, onBack: () -> Unit) {
 }
 
 private fun weatherIcon(temp: Double): ImageVector =
-    when {
-      temp >= 20 -> Icons.Outlined.WbSunny
-      temp >= 5 -> Icons.Outlined.Cloud
-      else -> Icons.Outlined.AcUnit
-    }
+  when {
+    temp >= 20 -> Icons.Outlined.WbSunny
+    temp >= 5 -> Icons.Outlined.Cloud
+    else -> Icons.Outlined.AcUnit
+  }
 
 private fun temperatureDescriptor(temp: Double): String =
-    when {
-      temp >= 30 -> "Hot"
-      temp >= 25 -> "Warm"
-      temp >= 15 -> "Mild"
-      temp >= 5 -> "Cool"
-      temp >= 0 -> "Chilly"
-      else -> "Freezing"
-    }
+  when {
+    temp >= 30 -> "Hot"
+    temp >= 25 -> "Warm"
+    temp >= 15 -> "Mild"
+    temp >= 5 -> "Cool"
+    temp >= 0 -> "Chilly"
+    else -> "Freezing"
+  }
 
 private fun gradientColors(temp: Double): Pair<Color, Color> =
-    when {
-      temp >= 25 -> Color(0xFFE65100) to Color(0xFFFFE0B2) // warm orange
-      temp >= 10 -> Color(0xFF2E7D32) to Color(0xFFC8E6C9) // mild green
-      temp >= 0 -> Color(0xFF1565C0) to Color(0xFFBBDEFB) // cool blue
-      else -> Color(0xFF4527A0) to Color(0xFFEDE7F6) // freezing indigo
-    }
+  when {
+    temp >= 25 -> Color(0xFFE65100) to Color(0xFFFFE0B2) // warm orange
+    temp >= 10 -> Color(0xFF2E7D32) to Color(0xFFC8E6C9) // mild green
+    temp >= 0 -> Color(0xFF1565C0) to Color(0xFFBBDEFB) // cool blue
+    else -> Color(0xFF4527A0) to Color(0xFFEDE7F6) // freezing indigo
+  }
 
 @Preview(showBackground = true)
 @Composable

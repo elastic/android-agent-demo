@@ -26,18 +26,21 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import co.elastic.otel.android.demo.MyApp.Companion.agent
 import co.elastic.otel.android.demo.ui.forecast.ForecastScreen
 import co.elastic.otel.android.demo.ui.theme.DemoWeatherAppTheme
+import co.elastic.otel.android.extensions.log
 
 class SecondFragment : Fragment() {
 
   override fun onCreateView(
-      inflater: LayoutInflater,
-      container: ViewGroup?,
-      savedInstanceState: Bundle?,
+    inflater: LayoutInflater,
+    container: ViewGroup?,
+    savedInstanceState: Bundle?,
   ): View {
     val city = arguments?.getString("city") ?: "Berlin"
     return ComposeView(requireContext()).apply {
+      agent.log("Creating SecondFragment composable")
       setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
       setContent {
         DemoWeatherAppTheme {

@@ -27,49 +27,68 @@ import android.widget.Filter
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import co.elastic.otel.android.demo.MyApp.Companion.agent
 import co.elastic.otel.android.demo.R
 import co.elastic.otel.android.demo.databinding.FragmentFirstBinding
+import co.elastic.otel.android.extensions.span
 
 class FirstFragment : Fragment() {
 
   private var _binding: FragmentFirstBinding? = null
   private val binding
     get() = _binding!!
+  private val clickCounter = agent
+    .getOpenTelemetry()
+    .getMeter("FirstFragment")
+    .counterBuilder("button.click.count")
+    .build()
 
   override fun onCreateView(
-      inflater: LayoutInflater,
-      container: ViewGroup?,
-      savedInstanceState: Bundle?,
+    inflater: LayoutInflater,
+    container: ViewGroup?,
+    savedInstanceState: Bundle?,
   ): View {
-    _binding = FragmentFirstBinding.inflate(inflater, container, false)
+    agent.span("FirstFragment layout inflate") {
+      _binding = FragmentFirstBinding.inflate(inflater, container, false)
+    }
     return binding.root
   }
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
 
-    val cities = resources.getStringArray(R.array.city_array)
-    val adapter =
-        object : ArrayAdapter<String>(requireContext(), android.R.layout.simple_list_item_1, cities) {
+    agent.span("FirstFragment view setup") {
+      val cities = resources.getStringArray(R.array.city_array)
+      val adapter =
+        object : ArrayAdapter<String>(
+          requireContext(),
+          android.R.layout.simple_list_item_1,
+          cities
+        ) {
           override fun getFilter() =
-              object : Filter() {
-                override fun performFiltering(constraint: CharSequence?) =
-                    FilterResults().apply {
-                      values = cities
-                      count = cities.size
-                    }
+            object : Filter() {
+              override fun performFiltering(constraint: CharSequence?) =
+                FilterResults().apply {
+                  values = cities
+                  count = cities.size
+                }
 
-                override fun publishResults(constraint: CharSequence?, results: FilterResults?) =
-                    notifyDataSetChanged()
-              }
+              override fun publishResults(
+                constraint: CharSequence?,
+                results: FilterResults?
+              ) =
+                notifyDataSetChanged()
+            }
         }
-    binding.cityDropdown.setAdapter(adapter)
-    binding.cityDropdown.setText(cities.first(), false)
+      binding.cityDropdown.setAdapter(adapter)
+      binding.cityDropdown.setText(cities.first(), false)
 
-    binding.buttonFirst.setOnClickListener {
-      val city = binding.cityDropdown.text.toString().ifBlank { cities.first() }
-      findNavController()
+      binding.buttonFirst.setOnClickListener {
+        clickCounter.add(1)
+        val city = binding.cityDropdown.text.toString().ifBlank { cities.first() }
+        findNavController()
           .navigate(R.id.action_FirstFragment_to_SecondFragment, bundleOf("city" to city))
+      }
     }
   }
 

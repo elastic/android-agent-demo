@@ -23,6 +23,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
+import android.widget.Filter
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -48,7 +49,20 @@ class FirstFragment : Fragment() {
     super.onViewCreated(view, savedInstanceState)
 
     val cities = resources.getStringArray(R.array.city_array)
-    val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, cities)
+    val adapter =
+        object : ArrayAdapter<String>(requireContext(), android.R.layout.simple_list_item_1, cities) {
+          override fun getFilter() =
+              object : Filter() {
+                override fun performFiltering(constraint: CharSequence?) =
+                    FilterResults().apply {
+                      values = cities
+                      count = cities.size
+                    }
+
+                override fun publishResults(constraint: CharSequence?, results: FilterResults?) =
+                    notifyDataSetChanged()
+              }
+        }
     binding.cityDropdown.setAdapter(adapter)
     binding.cityDropdown.setText(cities.first(), false)
 

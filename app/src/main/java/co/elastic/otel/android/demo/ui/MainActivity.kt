@@ -55,7 +55,7 @@ class MainActivity : AppCompatActivity() {
 
       binding.fab.setOnClickListener {
         agent.log(
-          "Crash button click",
+          "Crash button clicked",
           attributes =
             Attributes.builder()
               .put("activity.name", "MainActivity")

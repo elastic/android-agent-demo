@@ -30,6 +30,7 @@ import androidx.navigation.fragment.findNavController
 import co.elastic.otel.android.demo.MyApp.Companion.agent
 import co.elastic.otel.android.demo.R
 import co.elastic.otel.android.demo.databinding.FragmentFirstBinding
+import co.elastic.otel.android.extensions.log
 import co.elastic.otel.android.extensions.span
 
 class FirstFragment : Fragment() {
@@ -37,11 +38,6 @@ class FirstFragment : Fragment() {
   private var _binding: FragmentFirstBinding? = null
   private val binding
     get() = _binding!!
-  private val clickCounter = agent
-    .getOpenTelemetry()
-    .getMeter("FirstFragment")
-    .counterBuilder("button.click.count")
-    .build()
 
   override fun onCreateView(
     inflater: LayoutInflater,
@@ -84,7 +80,7 @@ class FirstFragment : Fragment() {
       binding.cityDropdown.setText(cities.first(), false)
 
       binding.buttonFirst.setOnClickListener {
-        clickCounter.add(1)
+        agent.log("Next button clicked!")
         val city = binding.cityDropdown.text.toString().ifBlank { cities.first() }
         findNavController()
           .navigate(R.id.action_FirstFragment_to_SecondFragment, bundleOf("city" to city))

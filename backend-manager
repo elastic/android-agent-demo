@@ -63,6 +63,10 @@ cmd_stop() {
 
 cmd_uninstall() {
   cmd_stop
+  if docker ps -a -q --filter "name=^${CONTAINER_NAME}$" | grep -q .; then
+    docker rm "$CONTAINER_NAME"
+    echo "$CONTAINER_NAME container removed."
+  fi
   if docker image inspect "$CONTAINER_NAME" >/dev/null 2>&1; then
     docker rmi "$CONTAINER_NAME"
     echo "Docker image '$CONTAINER_NAME' removed."

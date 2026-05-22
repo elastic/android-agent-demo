@@ -18,7 +18,7 @@
             android:name=".ui.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.DemoWeatherApp.NoActionBar">
+            android:theme="@style/Theme.DemoWeatherApp">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

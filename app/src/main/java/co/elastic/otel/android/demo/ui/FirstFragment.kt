@@ -47,20 +47,16 @@ class FirstFragment : Fragment() {
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
 
-    binding.buttonFirst.setOnClickListener {
-      val bundle = bundleOf("city" to binding.citySpinner.selectedItem.toString())
-      findNavController().navigate(R.id.action_FirstFragment_to_SecondFragment, bundle)
-    }
+    val cities = resources.getStringArray(R.array.city_array)
+    val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, cities)
+    binding.cityDropdown.setAdapter(adapter)
+    binding.cityDropdown.setText(cities.first(), false)
 
-    ArrayAdapter.createFromResource(
-            view.context,
-            R.array.city_array,
-            android.R.layout.simple_spinner_item,
-        )
-        .also { adapter ->
-          adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-          binding.citySpinner.adapter = adapter
-        }
+    binding.buttonFirst.setOnClickListener {
+      val city = binding.cityDropdown.text.toString().ifBlank { cities.first() }
+      findNavController()
+          .navigate(R.id.action_FirstFragment_to_SecondFragment, bundleOf("city" to city))
+    }
   }
 
   override fun onDestroyView() {

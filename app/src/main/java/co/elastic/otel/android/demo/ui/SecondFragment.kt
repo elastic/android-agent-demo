@@ -19,71 +19,31 @@
 package co.elastic.otel.android.demo.ui
 
 import android.os.Bundle
-import android.text.method.LinkMovementMethod
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
-import androidx.core.text.HtmlCompat
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import co.elastic.otel.android.demo.R
-import co.elastic.otel.android.demo.databinding.FragmentSecondBinding
-import co.elastic.otel.android.demo.network.WeatherRestManager
-import co.elastic.otel.android.demo.network.data.ForecastResponse
-import kotlinx.coroutines.launch
+import co.elastic.otel.android.demo.ui.forecast.ForecastScreen
+import co.elastic.otel.android.demo.ui.theme.DemoWeatherAppTheme
 
 class SecondFragment : Fragment() {
-
-  private var _binding: FragmentSecondBinding? = null
-  private val binding
-    get() = _binding!!
 
   override fun onCreateView(
       inflater: LayoutInflater,
       container: ViewGroup?,
       savedInstanceState: Bundle?,
   ): View {
-    _binding = FragmentSecondBinding.inflate(inflater, container, false)
-    return binding.root
-  }
-
-  override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-    super.onViewCreated(view, savedInstanceState)
-    lifecycleScope.launch {
-      try {
-        val city = arguments?.getString("city") ?: "Berlin"
-        binding.temperatureTitle.text = getString(R.string.temperature_title, city)
-        updateTemperature(WeatherRestManager.getCurrentCityWeather(city))
-        showApiNotice()
-      } catch (e: Exception) {
-        e.printStackTrace()
-        Toast.makeText(requireContext(), R.string.unknown_error_message, Toast.LENGTH_SHORT).show()
+    val city = arguments?.getString("city") ?: "Berlin"
+    return ComposeView(requireContext()).apply {
+      setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+      setContent {
+        DemoWeatherAppTheme {
+          ForecastScreen(city = city, onBack = { findNavController().navigateUp() })
+        }
       }
     }
-
-    binding.buttonSecond.setOnClickListener {
-      findNavController().navigate(R.id.action_SecondFragment_to_FirstFragment)
-    }
-  }
-
-  private fun showApiNotice() {
-    binding.txtApiNotice.movementMethod = LinkMovementMethod.getInstance()
-    binding.txtApiNotice.text =
-        HtmlCompat.fromHtml(
-            getString(R.string.weather_api_notice_message),
-            HtmlCompat.FROM_HTML_MODE_LEGACY,
-        )
-  }
-
-  private fun updateTemperature(response: ForecastResponse) {
-    binding.txtDegreesCelsius.text =
-        getString(R.string.temperature_in_celsius, response.currentWeather.temperature)
-  }
-
-  override fun onDestroyView() {
-    super.onDestroyView()
-    _binding = null
   }
 }

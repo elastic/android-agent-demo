@@ -100,7 +100,7 @@ the [start-local documentation](https://github.com/elastic/start-local/).
 
 ### Step 2: Launching the backend service
 
-We're going to use the `backend-launcher` script, which will build the backend, package it in a
+We're going to use the `backend-manager` script, which will build the backend, package it in a
 Docker image and run it connected to the same network as the EDOT Collector.
 
 Once the backend service is running, its endpoint will be `http://localhost:8080/v1/`.
@@ -110,14 +110,24 @@ done [here](app/src/main/java/co/elastic/otel/android/demo/network/WeatherRestMa
 this demo application use case, once the backend service is running, you're ready to go to the
 next step.
 
-Execute the [backend-launcher](backend-launcher) script. You can do so by opening up
+Execute the [backend-manager](backend-manager) script. You can do so by opening up
 a terminal, navigating to this directory and running the following command:
 
 ```shell
-./backend-launcher
+./backend-manager start
 ```
 
-To stop the backend: `docker rm -f weather-backend`
+To stop the backend:
+
+```shell
+./backend-manager stop
+```
+
+To stop the backend and remove the Docker image from your machine:
+
+```shell
+./backend-manager uninstall
+```
 
 ### Step 3: Launch the Android application
 

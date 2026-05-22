@@ -1,0 +1,79 @@
+#!/bin/sh
+set -e
+
+BASEDIR=$(dirname "$0")
+CONTAINER_NAME="weather-backend"
+NETWORK_NAME="elastic-start-local_default"
+TIMEOUT=60
+
+usage() {
+  echo "Usage: $0 {start|stop|uninstall}"
+  echo ""
+  echo "  start      Build and run the backend service"
+  echo "  stop       Stop the running backend container"
+  echo "  uninstall  Stop the container and remove the Docker image"
+  exit 1
+}
+
+cmd_start() {
+  "$BASEDIR/gradlew" -p "$BASEDIR" :backend:bootJar
+
+  if ! docker network inspect "$NETWORK_NAME" >/dev/null 2>&1; then
+    echo "Error: Docker network '$NETWORK_NAME' was not found."
+    echo "Run 'curl -fsSL https://elastic.co/start-local | sh -s -- --edot' before starting the backend."
+    exit 1
+  fi
+
+  docker rm -f "$CONTAINER_NAME" 2>/dev/null || true
+  docker build -t "$CONTAINER_NAME" "$BASEDIR/backend"
+
+  docker run -d --name "$CONTAINER_NAME" \
+    --network "$NETWORK_NAME" \
+    -p 8080:8080 \
+    -e OTEL_SERVICE_NAME=weather-backend \
+    -e OTEL_EXPORTER_OTLP_ENDPOINT=http://edot-collector:4318 \
+    "$CONTAINER_NAME"
+
+  echo "Waiting for $CONTAINER_NAME to be ready..."
+  start_time=$(date +%s)
+  until curl -s -o /dev/null -w '' http://localhost:8080 2>/dev/null; do
+    elapsed=$(( $(date +%s) - start_time ))
+    if [ "$elapsed" -ge "$TIMEOUT" ]; then
+      echo "Error: $CONTAINER_NAME did not become ready within ${TIMEOUT}s"
+      echo "Container logs:"
+      docker logs "$CONTAINER_NAME"
+      exit 1
+    fi
+    sleep 1
+  done
+
+  echo "$CONTAINER_NAME is running on http://localhost:8080"
+  echo "Run 'docker logs -f $CONTAINER_NAME' to see logs"
+  echo "Run '$0 stop' to stop the service"
+}
+
+cmd_stop() {
+  if docker ps -q --filter "name=^${CONTAINER_NAME}$" | grep -q .; then
+    docker stop "$CONTAINER_NAME"
+    echo "$CONTAINER_NAME stopped."
+  else
+    echo "$CONTAINER_NAME is not running."
+  fi
+}
+
+cmd_uninstall() {
+  cmd_stop
+  if docker image inspect "$CONTAINER_NAME" >/dev/null 2>&1; then
+    docker rmi "$CONTAINER_NAME"
+    echo "Docker image '$CONTAINER_NAME' removed."
+  else
+    echo "Docker image '$CONTAINER_NAME' not found, nothing to remove."
+  fi
+}
+
+case "${1:-}" in
+  start)     cmd_start ;;
+  stop)      cmd_stop ;;
+  uninstall) cmd_uninstall ;;
+  *)         usage ;;
+esac

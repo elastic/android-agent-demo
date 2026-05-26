@@ -40,9 +40,9 @@ class FirstFragment : Fragment() {
     get() = _binding!!
 
   override fun onCreateView(
-    inflater: LayoutInflater,
-    container: ViewGroup?,
-    savedInstanceState: Bundle?,
+      inflater: LayoutInflater,
+      container: ViewGroup?,
+      savedInstanceState: Bundle?,
   ): View {
     agent.span("FirstFragment layout inflate") {
       _binding = FragmentFirstBinding.inflate(inflater, container, false)
@@ -56,26 +56,20 @@ class FirstFragment : Fragment() {
     agent.span("FirstFragment view setup") {
       val cities = resources.getStringArray(R.array.city_array)
       val adapter =
-        object : ArrayAdapter<String>(
-          requireContext(),
-          android.R.layout.simple_list_item_1,
-          cities
-        ) {
-          override fun getFilter() =
-            object : Filter() {
-              override fun performFiltering(constraint: CharSequence?) =
-                FilterResults().apply {
-                  values = cities
-                  count = cities.size
-                }
+          object :
+              ArrayAdapter<String>(requireContext(), android.R.layout.simple_list_item_1, cities) {
+            override fun getFilter() =
+                object : Filter() {
+                  override fun performFiltering(constraint: CharSequence?) =
+                      FilterResults().apply {
+                        values = cities
+                        count = cities.size
+                      }
 
-              override fun publishResults(
-                constraint: CharSequence?,
-                results: FilterResults?
-              ) =
-                notifyDataSetChanged()
-            }
-        }
+                  override fun publishResults(constraint: CharSequence?, results: FilterResults?) =
+                      notifyDataSetChanged()
+                }
+          }
       binding.cityDropdown.setAdapter(adapter)
       binding.cityDropdown.setText(cities.first(), false)
 
@@ -83,7 +77,7 @@ class FirstFragment : Fragment() {
         agent.log("Next button clicked!")
         val city = binding.cityDropdown.text.toString().ifBlank { cities.first() }
         findNavController()
-          .navigate(R.id.action_FirstFragment_to_SecondFragment, bundleOf("city" to city))
+            .navigate(R.id.action_FirstFragment_to_SecondFragment, bundleOf("city" to city))
       }
     }
   }

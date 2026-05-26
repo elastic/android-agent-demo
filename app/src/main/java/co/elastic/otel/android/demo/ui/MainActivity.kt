@@ -55,12 +55,12 @@ class MainActivity : AppCompatActivity() {
 
       binding.fab.setOnClickListener {
         agent.log(
-          "Crash button clicked",
-          attributes =
-            Attributes.builder()
-              .put("activity.name", "MainActivity")
-              .put("button.action", "crash")
-              .build(),
+            "Crash button clicked",
+            attributes =
+                Attributes.builder()
+                    .put("activity.name", "MainActivity")
+                    .put("button.action", "crash")
+                    .build(),
         )
         triggerDemoCrash()
       }
@@ -68,9 +68,9 @@ class MainActivity : AppCompatActivity() {
       val fabBaseMargin = resources.getDimensionPixelSize(R.dimen.fab_margin_bottom)
       ViewCompat.setOnApplyWindowInsetsListener(binding.fab) { view, windowInsets ->
         val insets =
-          windowInsets.getInsets(
-            WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
-          )
+            windowInsets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
         view.updateLayoutParams<CoordinatorLayout.LayoutParams> {
           bottomMargin = insets.bottom + fabBaseMargin
         }

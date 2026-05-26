@@ -34,9 +34,9 @@ import co.elastic.otel.android.extensions.log
 class SecondFragment : Fragment() {
 
   override fun onCreateView(
-    inflater: LayoutInflater,
-    container: ViewGroup?,
-    savedInstanceState: Bundle?,
+      inflater: LayoutInflater,
+      container: ViewGroup?,
+      savedInstanceState: Bundle?,
   ): View {
     val city = arguments?.getString("city") ?: "Berlin"
     return ComposeView(requireContext()).apply {

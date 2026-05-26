@@ -1,6 +1,5 @@
 <resources>
-    <string name="app_name">Demo weather app</string>
-    <string name="action_settings">Settings</string>
+    <string name="app_name">EDOT Weather Demo</string>
     <!-- Strings used for fragments for navigation -->
     <string name="first_fragment_label">City Selection</string>
     <string name="second_fragment_label">City Weather Forecast</string>
@@ -8,14 +7,16 @@
     <string name="crash">Crash</string>
     <string name="crash_demo_button_description">Crash the app to demonstrate crash reporting</string>
     <string name="demo_crash_message">Intentional crash from the EDOT Android demo app</string>
-    <string name="previous">Previous</string>
 
-    <string name="hello_first_fragment">"Select a city and click on the button below to see how the city's temperature is right now!"</string>
-    <string name="temperature_title">%1$s\'s temperature</string>
+    <string name="hello_first_fragment">Select a city to see its current temperature.</string>
+    <string name="city_name">City</string>
     <string name="temperature_in_celsius">%.1f °C</string>
     <string name="unknown_error_message">Something unexpected happened</string>
     <string name="weather_api_notice_message">&lt;a href="https://open-meteo.com/">Weather data by Open-Meteo.com&lt;a/></string>
-    <string name="city_name">City name</string>
+    <string name="loading_forecast">Fetching forecast for %1$s…</string>
+    <string name="forecast_error_title">Couldn\'t load forecast for %1$s</string>
+    <string name="forecast_error_body">This city isn\'t supported by the local backend. Try Berlin, London, or Paris.</string>
+    <string name="try_another_city">Try another city</string>
     <string-array name="city_array">
         <item>Berlin</item>
         <item>London</item>

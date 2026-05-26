@@ -14,7 +14,7 @@ elastic-start-local/.env:
 
 .PHONY: start-backend
 start-backend: elastic-start-local  ## Build and start the backend service in Docker
-	$(repo_root)/backend-launcher
+	$(repo_root)/backend-manager start
 
 .PHONY: start-env
 start-env: elastic-start-local start-backend  ## Start the full environment

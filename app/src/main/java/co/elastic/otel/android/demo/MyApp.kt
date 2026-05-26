@@ -23,6 +23,7 @@ import co.elastic.otel.android.ElasticApmAgent
 import co.elastic.otel.android.api.ElasticOtelAgent
 import co.elastic.otel.android.extensions.log
 import co.elastic.otel.android.extensions.span
+import com.google.android.material.color.DynamicColors
 
 class MyApp : Application() {
   companion object {
@@ -31,6 +32,8 @@ class MyApp : Application() {
 
   override fun onCreate() {
     super.onCreate()
+    DynamicColors.applyToActivitiesIfAvailable(this)
+
     agent =
         ElasticApmAgent.builder(this)
             // For Android Emulators, the "10.0.2.2" address is the one of its host machine.

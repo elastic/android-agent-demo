@@ -23,11 +23,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
+import android.widget.Filter
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import co.elastic.otel.android.demo.MyApp.Companion.agent
 import co.elastic.otel.android.demo.R
 import co.elastic.otel.android.demo.databinding.FragmentFirstBinding
+import co.elastic.otel.android.extensions.log
+import co.elastic.otel.android.extensions.span
 
 class FirstFragment : Fragment() {
 
@@ -40,27 +44,42 @@ class FirstFragment : Fragment() {
       container: ViewGroup?,
       savedInstanceState: Bundle?,
   ): View {
-    _binding = FragmentFirstBinding.inflate(inflater, container, false)
+    agent.span("FirstFragment layout inflate") {
+      _binding = FragmentFirstBinding.inflate(inflater, container, false)
+    }
     return binding.root
   }
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
 
-    binding.buttonFirst.setOnClickListener {
-      val bundle = bundleOf("city" to binding.citySpinner.selectedItem.toString())
-      findNavController().navigate(R.id.action_FirstFragment_to_SecondFragment, bundle)
-    }
+    agent.span("FirstFragment view setup") {
+      val cities = resources.getStringArray(R.array.city_array)
+      val adapter =
+          object :
+              ArrayAdapter<String>(requireContext(), android.R.layout.simple_list_item_1, cities) {
+            override fun getFilter() =
+                object : Filter() {
+                  override fun performFiltering(constraint: CharSequence?) =
+                      FilterResults().apply {
+                        values = cities
+                        count = cities.size
+                      }
 
-    ArrayAdapter.createFromResource(
-            view.context,
-            R.array.city_array,
-            android.R.layout.simple_spinner_item,
-        )
-        .also { adapter ->
-          adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-          binding.citySpinner.adapter = adapter
-        }
+                  override fun publishResults(constraint: CharSequence?, results: FilterResults?) =
+                      notifyDataSetChanged()
+                }
+          }
+      binding.cityDropdown.setAdapter(adapter)
+      binding.cityDropdown.setText(cities.first(), false)
+
+      binding.buttonFirst.setOnClickListener {
+        agent.log("Next button clicked!")
+        val city = binding.cityDropdown.text.toString().ifBlank { cities.first() }
+        findNavController()
+            .navigate(R.id.action_FirstFragment_to_SecondFragment, bundleOf("city" to city))
+      }
+    }
   }
 
   override fun onDestroyView() {

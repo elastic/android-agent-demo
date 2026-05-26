@@ -20,6 +20,11 @@ package co.elastic.otel.android.demo.ui
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
@@ -37,6 +42,7 @@ class MainActivity : AppCompatActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+    WindowCompat.setDecorFitsSystemWindows(window, false)
     agent.span("Main Activity creation") {
       binding = ActivityMainBinding.inflate(layoutInflater)
       setContentView(binding.root)
@@ -47,16 +53,9 @@ class MainActivity : AppCompatActivity() {
       appBarConfiguration = AppBarConfiguration(navController.graph)
       setupActionBarWithNavController(navController, appBarConfiguration)
 
-      val counter =
-          agent
-              .getOpenTelemetry()
-              .getMeter("metricscope")
-              .counterBuilder("button.click.count")
-              .build()
       binding.fab.setOnClickListener {
-        counter.add(1)
         agent.log(
-            "Crash button click",
+            "Crash button clicked",
             attributes =
                 Attributes.builder()
                     .put("activity.name", "MainActivity")
@@ -64,6 +63,18 @@ class MainActivity : AppCompatActivity() {
                     .build(),
         )
         triggerDemoCrash()
+      }
+
+      val fabBaseMargin = resources.getDimensionPixelSize(R.dimen.fab_margin_bottom)
+      ViewCompat.setOnApplyWindowInsetsListener(binding.fab) { view, windowInsets ->
+        val insets =
+            windowInsets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+        view.updateLayoutParams<CoordinatorLayout.LayoutParams> {
+          bottomMargin = insets.bottom + fabBaseMargin
+        }
+        windowInsets
       }
     }
   }

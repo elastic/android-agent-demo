@@ -6,44 +6,49 @@
 
     <TextView
         android:id="@+id/textview_first"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:padding="30dp"
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginBottom="24dp"
         android:text="@string/hello_first_fragment"
-        app:layout_constraintBottom_toTopOf="@id/buttons_box"
+        android:textAlignment="center"
+        android:textAppearance="?attr/textAppearanceBodyLarge"
+        app:layout_constraintBottom_toTopOf="@id/city_input_layout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed" />
 
-    <LinearLayout
-        android:id="@+id/buttons_box"
-        android:layout_width="wrap_content"
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/city_input_layout"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginHorizontal="32dp"
+        android:layout_marginBottom="32dp"
+        android:hint="@string/city_name"
+        app:layout_constraintBottom_toTopOf="@id/button_first"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/textview_first">
 
-        <Button
-            android:id="@+id/button_first"
-            android:layout_width="wrap_content"
+        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+            android:id="@+id/city_dropdown"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/next" />
+            android:inputType="none" />
 
-    </LinearLayout>
+    </com.google.android.material.textfield.TextInputLayout>
 
-    <Spinner
-        android:id="@+id/city_spinner"
-        android:layout_width="313dp"
-        android:layout_height="66dp"
-        android:layout_marginTop="340dp"
-        android:layout_marginBottom="82dp"
-        android:contentDescription="@string/city_name"
-        android:spinnerMode="dropdown"
-        app:layout_constraintBottom_toTopOf="@+id/buttons_box"
+    <Button
+        android:id="@+id/button_first"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="48dp"
+        android:text="@string/next"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/city_input_layout" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

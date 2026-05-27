@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.androidApp) apply false
     alias(libs.plugins.androidLib) apply false
+    alias(libs.plugins.kotlin.compose) apply false
     id("com.diffplug.spotless") version "8.5.1"
 }
 

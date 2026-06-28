@@ -1,9 +1,9 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.plugin.compose")
-    id("co.elastic.otel.android.agent") version "1.6.0"
-    id("co.elastic.otel.android.instrumentation.okhttp") version "1.6.0"
-    id("co.elastic.otel.android.instrumentation.crash") version "1.6.0"
+    id("co.elastic.otel.android.agent") version "1.7.1"
+    id("co.elastic.otel.android.instrumentation.okhttp") version "1.7.1"
+    id("co.elastic.otel.android.instrumentation.crash") version "1.7.1"
 }
 
 android {

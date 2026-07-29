@@ -18,10 +18,10 @@ By running it, you can explore how EDOT Android captures and correlates telemetr
 - [Components](#components)
   * [Backend service](#backend-service)
   * [Android application](#android-application)
-  * [EDOT Collector](#edot-collector)
+  * [Elastic Agent](#elastic-agent)
 - [How to run](#how-to-run)
   * [Prerequisites](#prerequisites)
-  * [Step 1: Setting up Elasticsearch, Kibana and the EDOT Collector](#step-1-setting-up-elasticsearch-kibana-and-the-edot-collector)
+  * [Step 1: Setting up Elasticsearch, Kibana, and the Elastic Agent](#step-1-setting-up-elasticsearch-kibana-and-the-elastic-agent)
   * [Step 2: Launching the backend service](#step-2-launching-the-backend-service)
   * [Step 3: Launch the Android application](#step-3-launch-the-android-application)
 - [Analyzing the data](#analyzing-the-data)
@@ -46,13 +46,13 @@ head to the second screen. This is to demonstrate how network and backend errors
 correlated. The floating action button intentionally crashes the app so you can also inspect Android
 crash reporting in Kibana.
 
-### EDOT Collector
+### Elastic Agent
 
-The [EDOT Collector](https://www.elastic.co/docs/reference/opentelemetry/edot-collector/) (Elastic
-Distribution of the OpenTelemetry Collector) receives telemetry data from both the Android
-application and the backend service and forwards it to Elasticsearch for storage and analysis. In
-this demo, it is set up automatically as part of [Step 1](#step-1-setting-up-elasticsearch-kibana-and-the-edot-collector)
-via start-local.
+The [Elastic Agent](https://www.elastic.co/docs/reference/fleet/elastic-agent-as-otel-collector)
+provides the OTLP endpoint that receives telemetry from the Android application and backend service,
+then forwards it to Elasticsearch for storage and analysis. In this demo, it is set up automatically
+as part of [Step 1](#step-1-setting-up-elasticsearch-kibana-and-the-elastic-agent) via
+start-local.
 
 ## How to run
 
@@ -72,19 +72,20 @@ via start-local.
 > If you wanted to use a real device, you'd need to replace the `10.0.2.2` host by the one of the
 > machine where you'll start the services mentioned in the steps below.
 
-### Step 1: Setting up Elasticsearch, Kibana and the EDOT Collector
+### Step 1: Setting up Elasticsearch, Kibana, and the Elastic Agent
 
 We use [start-local](https://github.com/elastic/start-local/) to spin up Elasticsearch, Kibana and
-the EDOT Collector locally with a single command. Run the following:
+the Elastic Agent locally with a single command. In this setup, the Elastic Agent provides the OTLP
+endpoint that receives telemetry from the Android application and backend service. Run the following:
 
 ```shell
 curl -fsSL https://elastic.co/start-local | sh -s -- --edot
 ```
 
 This creates an `elastic-start-local` folder and starts all three services. Once it finishes, the
-EDOT Collector endpoint will be `http://localhost:4318`.
+OTLP endpoint is available at `http://localhost:4318`.
 
-You don't need to configure the EDOT Collector endpoint for this demo application, as it has already
+You don't need to configure the OTLP endpoint for this demo application, as it has already
 been set [here](app/src/main/java/co/elastic/otel/android/demo/MyApp.kt).
 
 You can stop and start the services later with the scripts in the `elastic-start-local` folder:
@@ -101,7 +102,7 @@ the [start-local documentation](https://github.com/elastic/start-local/).
 ### Step 2: Launching the backend service
 
 We're going to use the `backend-manager` script, which will build the backend, package it in a
-Docker image and run it connected to the same network as the EDOT Collector.
+Docker image and run it connected to the same network as the Elastic Agent.
 
 Once the backend service is running, its endpoint will be `http://localhost:8080/v1/`.
 

@@ -17,4 +17,3 @@ dependencyResolutionManagement {
 }
 rootProject.name = "EDOT Android demo app"
 include(":app")
-include(":backend")

@@ -102,7 +102,7 @@ the [start-local documentation](https://github.com/elastic/start-local/).
 
 We're going to use the `backend-manager` script, which will pull the pre-built
 [backend](https://github.com/elastic/shared-otel-sdk-demo/tree/main/backend) Docker image from
-`ghcr.io` and run it connected to the same network as the EDOT Collector.
+`ghcr.io` and run it connected to the same network as the Elastic Agent.
 
 Once the backend service is running, its endpoint will be `http://localhost:8080/v1/`.
 

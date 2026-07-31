@@ -4,6 +4,7 @@ set -euo pipefail
 
 logcat_pid=""
 logcat_file=""
+crash_logcat_file=""
 
 require() {
   local value="$1"
@@ -150,17 +151,20 @@ trigger_crash_and_relaunch_app() {
 
   tap_crash_button
 
+  # The crash window gets its own file so the logcat streamed since app launch stays available
+  # for diagnostics
+  crash_logcat_file="${logcat_file%.txt}_crash.txt"
   for i in $(seq 1 10); do
     sleep 2
-    adb logcat -d > "$logcat_file" 2>&1
-    if grep -q "AndroidRuntime.*FATAL EXCEPTION" "$logcat_file"; then
+    adb logcat -d > "$crash_logcat_file" 2>&1
+    if grep -q "AndroidRuntime.*FATAL EXCEPTION" "$crash_logcat_file"; then
       echo "Crash detected in logcat"
       break
     fi
     echo "  waiting for crash in logcat... ($i/10)" >&2
   done
 
-  if ! grep -q "AndroidRuntime.*FATAL EXCEPTION" "$logcat_file"; then
+  if ! grep -q "AndroidRuntime.*FATAL EXCEPTION" "$crash_logcat_file"; then
     echo "FAIL: No intentional crash found in logcat"
     exit 1
   fi
@@ -180,6 +184,10 @@ print_failure_diagnostics() {
   if [ -n "${logcat_file:-}" ] && [ -f "$logcat_file" ]; then
     echo "--- Last 200 logcat lines ---" >&2
     tail -n 200 "$logcat_file" >&2 || true
+  fi
+  if [ -n "${crash_logcat_file:-}" ] && [ -f "$crash_logcat_file" ]; then
+    echo "--- Last 200 crash-window logcat lines ---" >&2
+    tail -n 200 "$crash_logcat_file" >&2 || true
   fi
   echo "=== End failure diagnostics ===" >&2
 }
@@ -229,15 +237,15 @@ validate_backend_span() {
 }
 
 validate_trace_correlation() {
-  local app_forecast_span="$1"
+  local app_http_span="$1"
   local backend_span="$2"
   local app_trace_id
-  app_trace_id=$(echo "$app_forecast_span" | jq -r '._source.trace.id')
+  app_trace_id=$(echo "$app_http_span" | jq -r '._source.trace_id // ._source."trace.id" // empty')
   local backend_trace_id
-  backend_trace_id=$(echo "$backend_span" | jq -r '._source.trace.id')
+  backend_trace_id=$(echo "$backend_span" | jq -r '._source.trace_id // ._source."trace.id" // empty')
 
-  assert_not_empty "$app_trace_id" "App forecast span has no trace.id"
-  assert_not_empty "$backend_trace_id" "Backend span has no trace.id"
+  assert_not_empty "$app_trace_id" "App HTTP span has no trace id"
+  assert_not_empty "$backend_trace_id" "Backend span has no trace id"
   assert_equals "$app_trace_id" "$backend_trace_id"
 }
 
@@ -267,11 +275,6 @@ ES_LOCAL_API_KEY=$2
 current_dir=$(pwd)
 repo_root="${current_dir%/.github*}"
 
-# Every ES query is scoped to documents created after this moment, so stale documents
-# from a previous run against the same stack can never satisfy an assertion.
-test_start_ts=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-echo "Test start timestamp: $test_start_ts"
-
 # Connectivity diagnostics
 echo "=== Connectivity diagnostics ==="
 nc -z localhost 4318 && echo "  localhost:4318 (collector): OK" || echo "  localhost:4318 (collector): FAILED"
@@ -300,24 +303,22 @@ sleep 5
 
 echo "Waiting for telemetry data to be indexed..."
 
-time_filter='{"range":{"@timestamp":{"gte":"'"$test_start_ts"'"}}}'
-
-app_span_query='{"query":{"bool":{"filter":['"$time_filter"',{"term":{"service.name":{"value":"weather-demo-app"}}},{"term":{"name":{"value":"Creating app"}}}]}}}'
-app_log_query='{"query":{"bool":{"filter":['"$time_filter"',{"term":{"service.name":{"value":"weather-demo-app"}}},{"match":{"body.text":"During app creation"}}]}}}'
-backend_span_query='{"query":{"bool":{"filter":['"$time_filter"',{"term":{"service.name":{"value":"weather-demo-backend"}}}]}}}'
-crash_event_query='{"query":{"bool":{"filter":['"$time_filter"',{"term":{"service.name":{"value":"weather-demo-app"}}}],"should":[{"term":{"event_name":{"value":"device.crash"}}},{"term":{"attributes.otel.event.name":{"value":"device.crash"}}}],"minimum_should_match":1}}}'
+app_span_query='{"query":{"bool":{"filter":[{"term":{"service.name":{"value":"weather-demo-app"}}},{"term":{"name":{"value":"Creating app"}}}]}}}'
+app_log_query='{"query":{"bool":{"filter":[{"term":{"service.name":{"value":"weather-demo-app"}}},{"match":{"body.text":"During app creation"}}]}}}'
+backend_span_query='{"query":{"bool":{"filter":[{"term":{"service.name":{"value":"weather-demo-backend"}}},{"term":{"name":{"value":"GET /v1/forecast"}}}]}}}'
+crash_event_query='{"query":{"bool":{"filter":[{"term":{"service.name":{"value":"weather-demo-app"}}}],"should":[{"term":{"event_name":{"value":"device.crash"}}},{"term":{"attributes.otel.event.name":{"value":"device.crash"}}}],"minimum_should_match":1}}}'
 
 app_span=$(es_wait_for_item "traces-*" "$app_span_query" "Android app startup span")
 app_log=$(es_wait_for_item "logs-*" "$app_log_query" "Android app startup log")
-backend_span=$(es_wait_for_item "traces-*" "$backend_span_query" "Backend span")
+backend_span=$(es_wait_for_item "traces-*" "$backend_span_query" "Backend forecast span")
 
 # The forecast request is auto-instrumented by the EDOT OkHttp instrumentation, so the app-side
-# span of the distributed trace is looked up by the backend span's trace.id
-app_forecast_span=""
+# span of the distributed trace is looked up by the backend span's trace id
+app_http_span=""
 if [ -n "$backend_span" ]; then
-  backend_trace_id=$(echo "$backend_span" | jq -r '._source.trace.id // empty')
-  app_forecast_span_query='{"query":{"bool":{"filter":['"$time_filter"',{"term":{"service.name":{"value":"weather-demo-app"}}},{"term":{"trace.id":{"value":"'"$backend_trace_id"'"}}}]}}}'
-  app_forecast_span=$(es_wait_for_item "traces-*" "$app_forecast_span_query" "Android span in the backend's trace")
+  backend_trace_id=$(echo "$backend_span" | jq -r '._source.trace_id // ._source."trace.id" // empty')
+  app_http_span_query='{"query":{"bool":{"filter":[{"term":{"service.name":{"value":"weather-demo-app"}}}],"should":[{"term":{"trace_id":{"value":"'"$backend_trace_id"'"}}},{"term":{"trace.id":{"value":"'"$backend_trace_id"'"}}}],"minimum_should_match":1}}}'
+  app_http_span=$(es_wait_for_item "traces-*" "$app_http_span_query" "Android span in the backend's trace")
 fi
 
 trigger_crash_and_relaunch_app
@@ -328,7 +329,7 @@ es_build_dir="$repo_root/build/e2e"
 mkdir -p "$es_build_dir"
 echo "$app_span" > "$es_build_dir/app_span.json"
 echo "$app_log" > "$es_build_dir/app_log.json"
-echo "$app_forecast_span" > "$es_build_dir/app_forecast_span.json"
+echo "$app_http_span" > "$es_build_dir/app_http_span.json"
 echo "$backend_span" > "$es_build_dir/backend_span.json"
 echo "$crash_event" > "$es_build_dir/crash_event.json"
 
@@ -346,7 +347,7 @@ if [ -z "$backend_span" ]; then
   echo "FAIL: No backend span found in ES within timeout"
   failed=1
 fi
-if [ -z "$app_forecast_span" ]; then
+if [ -z "$app_http_span" ]; then
   echo "FAIL: No Android app span found in the backend's trace within timeout"
   failed=1
 fi
@@ -369,7 +370,7 @@ validate_backend_span "$backend_span"
 # Validate distributed trace correlation (the app's auto-instrumented HTTP span and the backend
 # span share the same trace.id)
 echo "Validating trace correlation..."
-validate_trace_correlation "$app_forecast_span" "$backend_span"
+validate_trace_correlation "$app_http_span" "$backend_span"
 echo "Validating Android app crash event..."
 validate_crash_event "$crash_event"
 

@@ -32,10 +32,10 @@ By running it, you can explore how EDOT Android captures and correlates telemetr
 
 ### Backend service
 
-Located in the [backend](backend) module. This is a simple local backend service based on Spring
-Boot that provides APIs for the application and helps showcasing the
-the [distributed tracing](https://www.elastic.co/docs/reference/opentelemetry/edot-sdks/android#distributed-tracing)
-use case.
+A simple Spring Boot service that provides APIs for the application and helps showcasing the
+[distributed tracing](https://www.elastic.co/docs/reference/opentelemetry/edot-sdks/android#distributed-tracing)
+use case. The source is maintained in
+[elastic/shared-otel-sdk-demo](https://github.com/elastic/shared-otel-sdk-demo/tree/main/backend).
 
 ### Android application
 
@@ -58,7 +58,6 @@ start-local.
 
 ### Prerequisites
 
-* Java 17 or higher.
 * [Docker](https://www.docker.com/).
 * An [Android emulator](https://developer.android.com/studio/run/emulator#get-started).
 * On Microsoft Windows
@@ -101,8 +100,9 @@ the [start-local documentation](https://github.com/elastic/start-local/).
 
 ### Step 2: Launching the backend service
 
-We're going to use the `backend-manager` script, which will build the backend, package it in a
-Docker image and run it connected to the same network as the Elastic Agent.
+We're going to use the `backend-manager` script, which will pull the pre-built
+[backend](https://github.com/elastic/shared-otel-sdk-demo/tree/main/backend) Docker image from
+`ghcr.io` and run it connected to the same network as the EDOT Collector.
 
 Once the backend service is running, its endpoint will be `http://localhost:8080/v1/`.
 

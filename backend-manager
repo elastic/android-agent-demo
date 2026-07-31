@@ -2,7 +2,7 @@
 set -e
 
 CONTAINER_NAME="weather-backend"
-BACKEND_VERSION="0.0.1"
+BACKEND_VERSION="0.0.2"
 BACKEND_IMAGE="ghcr.io/elastic/shared-otel-sdk-demo/backend:${BACKEND_VERSION}"
 NETWORK_NAME="elastic-start-local_default"
 TIMEOUT=60

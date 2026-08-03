@@ -1,30 +1,37 @@
-# Demo application
+# EDOT Android demo
 
-This is a demo Android application to show how the [EDOT Android agent](https://github.com/elastic/apm-agent-android) works.
+This repository demonstrates the
+[Elastic Distribution of OpenTelemetry Android](https://github.com/elastic/apm-agent-android) (EDOT
+Android) in an end-to-end weather application. See the
+[EDOT Android documentation](https://www.elastic.co/docs/reference/opentelemetry/edot-sdks/android)
+for the full agent reference.
 
-To showcase an end-to-end scenario including distributed tracing we'll instrument this demo
-weather application that comprises two Android screens and a simple local backend service based on
-Spring Boot.
-
-By running it, you can explore how EDOT Android captures and correlates telemetry from a mobile app:
-
-* Distributed traces that connect Android user actions with backend HTTP requests.
-* Custom spans and logs from the Android app.
-* An intentional backend error path.
-* An intentional Android crash that appears in Kibana after relaunching the app.
+Choose a city, request its current weather through a local instrumented backend, and inspect the
+complete distributed trace in Elastic. The demo also includes focused examples of manual spans,
+logs, an intentional backend error, and an intentional Android crash.
 
 ## Table of contents
 
+- [What you can observe](#what-you-can-observe)
 - [Components](#components)
-  * [Backend service](#backend-service)
-  * [Android application](#android-application)
-  * [Elastic Agent](#elastic-agent)
-- [How to run](#how-to-run)
-  * [Prerequisites](#prerequisites)
-  * [Step 1: Setting up Elasticsearch, Kibana, and the Elastic Agent](#step-1-setting-up-elasticsearch-kibana-and-the-elastic-agent)
-  * [Step 2: Launching the backend service](#step-2-launching-the-backend-service)
-  * [Step 3: Launch the Android application](#step-3-launch-the-android-application)
-- [Analyzing the data](#analyzing-the-data)
+  - [Backend service](#backend-service)
+  - [Android application](#android-application)
+  - [Elastic Agent](#elastic-agent)
+- [Prerequisites](#prerequisites)
+- [Run the demo](#run-the-demo)
+  - [1. Start the Elastic Stack](#1-start-the-elastic-stack)
+  - [2. Start the instrumented backend](#2-start-the-instrumented-backend)
+  - [3. Run the Android application](#3-run-the-android-application)
+- [Inspect the data](#inspect-the-data)
+- [Emulator and physical-device networking](#emulator-and-physical-device-networking)
+- [License](#license)
+
+## What you can observe
+
+- Distributed traces from an Android user action through HTTP, the backend, and Open-Meteo.
+- Custom spans and logs from the Android app.
+- A backend error when New York is selected.
+- A persisted crash report exported after the app is relaunched.
 
 ## Components
 
@@ -34,8 +41,8 @@ By running it, you can explore how EDOT Android captures and correlates telemetr
 
 A simple Spring Boot service that provides APIs for the application and helps showcasing the
 [distributed tracing](https://www.elastic.co/docs/reference/opentelemetry/edot-sdks/android#distributed-tracing)
-use case. The source is maintained in
-[elastic/shared-otel-sdk-demo](https://github.com/elastic/shared-otel-sdk-demo/tree/main/backend).
+use case. It is instrumented by the EDOT Java runtime attach library, and its source is maintained
+in [elastic/shared-otel-sdk-demo](https://github.com/elastic/shared-otel-sdk-demo/tree/main/backend).
 
 ### Android application
 
@@ -51,45 +58,44 @@ crash reporting in Kibana.
 The [Elastic Agent](https://www.elastic.co/docs/reference/fleet/elastic-agent-as-otel-collector)
 provides the OTLP endpoint that receives telemetry from the Android application and backend service,
 then forwards it to Elasticsearch for storage and analysis. In this demo, it is set up automatically
-as part of [Step 1](#step-1-setting-up-elasticsearch-kibana-and-the-elastic-agent) via
-start-local.
+as part of [Step 1](#1-start-the-elastic-stack) via start-local.
 
-## How to run
+## Prerequisites
 
-### Prerequisites
-
-* [Docker](https://www.docker.com/).
-* An [Android emulator](https://developer.android.com/studio/run/emulator#get-started).
-* On Microsoft Windows
-  use [Windows Subsystem for Linux (WSL)](https://learn.microsoft.com/en-us/windows/wsl/install).
+- [Docker](https://www.docker.com/).
+- An [Android emulator](https://developer.android.com/studio/run/emulator#get-started).
+- On Microsoft Windows, use
+  [Windows Subsystem for Linux (WSL)](https://learn.microsoft.com/en-us/windows/wsl/install).
 
 > [!NOTE]
-> The reason why is recommended using an emulator is because the
-> endpoints set [here](app/src/main/java/co/elastic/otel/android/demo/MyApp.kt) and
-> [here](app/src/main/java/co/elastic/otel/android/demo/network/WeatherRestManager.kt) point to
-> local services via the emulator's localhost IP ([10.0.2.2](https://developer.android.com/studio/run/emulator-networking#networkaddresses)).
-> If you wanted to use a real device, you'd need to replace the `10.0.2.2` host by the one of the
-> machine where you'll start the services mentioned in the steps below.
+> The reason why an emulator is recommended is that the demo's endpoints point to local services
+> through the emulator's host machine alias
+> ([10.0.2.2](https://developer.android.com/studio/run/emulator-networking#networkaddresses)). If
+> you wanted to use a real device instead, see
+> [Emulator and physical-device networking](#emulator-and-physical-device-networking).
 
-### Step 1: Setting up Elasticsearch, Kibana, and the Elastic Agent
+## Run the demo
+
+### 1. Start the Elastic Stack
 
 We use [start-local](https://github.com/elastic/start-local/) to spin up Elasticsearch, Kibana and
 the Elastic Agent locally with a single command. In this setup, the Elastic Agent provides the OTLP
-endpoint that receives telemetry from the Android application and backend service. Run the following:
+endpoint that receives telemetry from the Android application and backend service. Run this command
+from the repository root:
 
-```shell
+```sh
 curl -fsSL https://elastic.co/start-local | sh -s -- --edot
 ```
 
 This creates an `elastic-start-local` folder and starts all three services. Once it finishes, the
 OTLP endpoint is available at `http://localhost:4318`.
 
-You don't need to configure the OTLP endpoint for this demo application, as it has already
-been set [here](app/src/main/java/co/elastic/otel/android/demo/MyApp.kt).
+You don't need to configure the OTLP endpoint for this demo application, as it has already been
+set [here](app/src/main/java/co/elastic/otel/android/demo/MyApp.kt).
 
 You can stop and start the services later with the scripts in the `elastic-start-local` folder:
 
-```shell
+```sh
 cd elastic-start-local
 ./stop.sh   # stop the services
 ./start.sh  # start them again
@@ -98,7 +104,7 @@ cd elastic-start-local
 For more information on start-local, refer to
 the [start-local documentation](https://github.com/elastic/start-local/).
 
-### Step 2: Launching the backend service
+### 2. Start the instrumented backend
 
 We're going to use the `backend-manager` script, which will pull the pre-built
 [backend](https://github.com/elastic/shared-otel-sdk-demo/tree/main/backend) Docker image from
@@ -114,23 +120,23 @@ next step.
 Execute the [backend-manager](backend-manager) script. You can do so by opening up
 a terminal, navigating to this directory and running the following command:
 
-```shell
+```sh
 ./backend-manager start
 ```
 
 To stop the backend:
 
-```shell
+```sh
 ./backend-manager stop
 ```
 
 To stop the backend and remove the Docker image from your machine:
 
-```shell
+```sh
 ./backend-manager uninstall
 ```
 
-### Step 3: Launch the Android application
+### 3. Run the Android application
 
 Open up this project with Android Studio
 and [run the application](https://developer.android.com/studio/run) in
@@ -144,12 +150,37 @@ To demonstrate Android crash reporting, tap the floating crash button in the low
 The app will close intentionally. Tap **Open app again**, or launch it again from Android Studio or
 the emulator launcher, so the EDOT Android agent can export the buffered crash event.
 
-## Analyzing the data
+## Inspect the data
 
 After launching the app and navigating through it, open Kibana at http://localhost:5601 and log in
 with username `elastic` and the password printed at the end of the start-local setup. You can also
 find the password in `elastic-start-local/.env` (the `ES_LOCAL_PASSWORD` variable).
 
+Useful service names:
+
+- `weather-demo-app`
+- `weather-demo-backend`
+
 For a more detailed overview, take a look at how
 to [Visualize telemetry](https://www.elastic.co/docs/reference/opentelemetry/edot-sdks/android/getting-started#visualize-telemetry)
 in the docs.
+
+## Emulator and physical-device networking
+
+The Android Emulator reaches services on the host machine through `10.0.2.2`, so the checked-in
+configuration works without changes. A physical device cannot use that address. To use one:
+
+1. Change the OTLP export URL in
+   [`MyApp.kt`](app/src/main/java/co/elastic/otel/android/demo/MyApp.kt) and the backend URL in
+   [`WeatherRestManager.kt`](app/src/main/java/co/elastic/otel/android/demo/network/WeatherRestManager.kt)
+   to the host machine's LAN address.
+2. Ensure ports `4318` (Elastic Agent OTLP) and `8080` (backend) are reachable through the host
+   firewall.
+3. Keep the device and host on the same network.
+
+The app permits clear-text traffic because all demo endpoints are local HTTP services. Do not carry
+`android:usesCleartextTraffic="true"` into a production application.
+
+## License
+
+Apache License 2.0. See [`LICENSE`](LICENSE).

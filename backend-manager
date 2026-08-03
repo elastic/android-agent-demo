@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-CONTAINER_NAME="weather-backend"
+CONTAINER_NAME="android-weather-backend"
 BACKEND_VERSION="0.0.2"
 BACKEND_IMAGE="ghcr.io/elastic/shared-otel-sdk-demo/backend:${BACKEND_VERSION}"
 NETWORK_NAME="elastic-start-local_default"
@@ -29,7 +29,7 @@ cmd_start() {
   docker run -d --name "$CONTAINER_NAME" \
     --network "$NETWORK_NAME" \
     -p 8080:8080 \
-    -e OTEL_SERVICE_NAME=weather-backend \
+    -e OTEL_SERVICE_NAME=weather-demo-backend \
     -e OTEL_EXPORTER_OTLP_ENDPOINT=http://edot-collector:4318 \
     "$BACKEND_IMAGE"
 

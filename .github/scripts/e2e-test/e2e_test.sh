@@ -4,6 +4,7 @@ set -euo pipefail
 
 logcat_pid=""
 logcat_file=""
+crash_logcat_file=""
 
 require() {
   local value="$1"
@@ -104,25 +105,25 @@ cleanup_logcat() {
   fi
 }
 
-tap_crash_button() {
-  local description
-  description="Crash the app to demonstrate crash reporting"
+tap_node() {
+  local attribute="$1"
+  local value="$2"
 
   adb shell uiautomator dump /sdcard/window.xml >/dev/null
 
   local bounds
-  bounds=$(python3 - "$description" <<'PY'
+  bounds=$(python3 - "$attribute" "$value" <<'PY'
 import subprocess
 import sys
 import xml.etree.ElementTree as ET
 
-description = sys.argv[1]
+attribute, value = sys.argv[1], sys.argv[2]
 xml = subprocess.check_output(["adb", "exec-out", "cat", "/sdcard/window.xml"]).decode(
     "utf-8", "ignore"
 )
 root = ET.fromstring(xml)
 for node in root.iter("node"):
-    if node.attrib.get("content-desc") == description:
+    if node.attrib.get(attribute) == value:
         print(node.attrib["bounds"])
         sys.exit(0)
 sys.exit(1)
@@ -135,6 +136,14 @@ PY
   adb shell input tap "$(((left + right) / 2))" "$(((top + bottom) / 2))"
 }
 
+tap_crash_button() {
+  tap_node "content-desc" "Crash the app to demonstrate crash reporting"
+}
+
+tap_next_button() {
+  tap_node "resource-id" "co.elastic.otel.android.demo:id/button_first"
+}
+
 trigger_crash_and_relaunch_app() {
   echo "Triggering intentional app crash..."
   cleanup_logcat
@@ -142,17 +151,20 @@ trigger_crash_and_relaunch_app() {
 
   tap_crash_button
 
+  # The crash window gets its own file so the logcat streamed since app launch stays available
+  # for diagnostics
+  crash_logcat_file="${logcat_file%.txt}_crash.txt"
   for i in $(seq 1 10); do
     sleep 2
-    adb logcat -d > "$logcat_file" 2>&1
-    if grep -q "AndroidRuntime.*FATAL EXCEPTION" "$logcat_file"; then
+    adb logcat -d > "$crash_logcat_file" 2>&1
+    if grep -q "AndroidRuntime.*FATAL EXCEPTION" "$crash_logcat_file"; then
       echo "Crash detected in logcat"
       break
     fi
     echo "  waiting for crash in logcat... ($i/10)" >&2
   done
 
-  if ! grep -q "AndroidRuntime.*FATAL EXCEPTION" "$logcat_file"; then
+  if ! grep -q "AndroidRuntime.*FATAL EXCEPTION" "$crash_logcat_file"; then
     echo "FAIL: No intentional crash found in logcat"
     exit 1
   fi
@@ -167,11 +179,15 @@ trigger_crash_and_relaunch_app() {
 print_failure_diagnostics() {
   echo "=== Failure diagnostics ===" >&2
   docker ps --format '  {{.Names}}\t{{.Status}}\t{{.Ports}}' >&2 2>/dev/null || true
-  echo "--- Last 200 weather-backend log lines ---" >&2
-  docker logs --tail 200 weather-backend >&2 2>/dev/null || true
+  echo "--- Last 200 android-weather-backend log lines ---" >&2
+  docker logs --tail 200 android-weather-backend >&2 2>/dev/null || true
   if [ -n "${logcat_file:-}" ] && [ -f "$logcat_file" ]; then
     echo "--- Last 200 logcat lines ---" >&2
     tail -n 200 "$logcat_file" >&2 || true
+  fi
+  if [ -n "${crash_logcat_file:-}" ] && [ -f "$crash_logcat_file" ]; then
+    echo "--- Last 200 crash-window logcat lines ---" >&2
+    tail -n 200 "$crash_logcat_file" >&2 || true
   fi
   echo "=== End failure diagnostics ===" >&2
 }
@@ -217,7 +233,20 @@ validate_backend_span() {
   local service_name
   service_name=$(echo "$span" | jq -r '._source.resource.attributes."service.name"')
 
-  assert_equals "weather-backend" "$service_name"
+  assert_equals "weather-demo-backend" "$service_name"
+}
+
+validate_trace_correlation() {
+  local app_http_span="$1"
+  local backend_span="$2"
+  local app_trace_id
+  app_trace_id=$(echo "$app_http_span" | jq -r '._source.trace_id // ._source."trace.id" // empty')
+  local backend_trace_id
+  backend_trace_id=$(echo "$backend_span" | jq -r '._source.trace_id // ._source."trace.id" // empty')
+
+  assert_not_empty "$app_trace_id" "App HTTP span has no trace id"
+  assert_not_empty "$backend_trace_id" "Backend span has no trace id"
+  assert_equals "$app_trace_id" "$backend_trace_id"
 }
 
 validate_crash_event() {
@@ -266,20 +295,31 @@ logcat_pid=$!
 # Give the app a moment to initialize and export telemetry
 sleep 10
 
-# Trigger a backend request to generate backend telemetry
-echo "Triggering backend request..."
-curl -sS --retry 5 --retry-connrefused --retry-delay 2 "http://localhost:8080/v1/forecast?city=Berlin" > /dev/null
+# Navigate to the forecast screen like a real user, which makes the app request the
+# forecast from the backend and produces a distributed trace across both services
+echo "Navigating to the forecast screen..."
+tap_next_button
+sleep 5
 
 echo "Waiting for telemetry data to be indexed..."
 
 app_span_query='{"query":{"bool":{"filter":[{"term":{"service.name":{"value":"weather-demo-app"}}},{"term":{"name":{"value":"Creating app"}}}]}}}'
 app_log_query='{"query":{"bool":{"filter":[{"term":{"service.name":{"value":"weather-demo-app"}}},{"match":{"body.text":"During app creation"}}]}}}'
-backend_span_query='{"query":{"term":{"service.name":{"value":"weather-backend"}}}}'
+backend_span_query='{"query":{"bool":{"filter":[{"term":{"service.name":{"value":"weather-demo-backend"}}},{"term":{"name":{"value":"GET /v1/forecast"}}}]}}}'
 crash_event_query='{"query":{"bool":{"filter":[{"term":{"service.name":{"value":"weather-demo-app"}}}],"should":[{"term":{"event_name":{"value":"device.crash"}}},{"term":{"attributes.otel.event.name":{"value":"device.crash"}}}],"minimum_should_match":1}}}'
 
-app_span=$(es_wait_for_item "traces-*" "$app_span_query" "Android app spans")
-app_log=$(es_wait_for_item "logs-*" "$app_log_query" "Android app logs")
-backend_span=$(es_wait_for_item "traces-*" "$backend_span_query" "Backend spans")
+app_span=$(es_wait_for_item "traces-*" "$app_span_query" "Android app startup span")
+app_log=$(es_wait_for_item "logs-*" "$app_log_query" "Android app startup log")
+backend_span=$(es_wait_for_item "traces-*" "$backend_span_query" "Backend forecast span")
+
+# The forecast request is auto-instrumented by the EDOT OkHttp instrumentation, so the app-side
+# span of the distributed trace is looked up by the backend span's trace id
+app_http_span=""
+if [ -n "$backend_span" ]; then
+  backend_trace_id=$(echo "$backend_span" | jq -r '._source.trace_id // ._source."trace.id" // empty')
+  app_http_span_query='{"query":{"bool":{"filter":[{"term":{"service.name":{"value":"weather-demo-app"}}}],"should":[{"term":{"trace_id":{"value":"'"$backend_trace_id"'"}}},{"term":{"trace.id":{"value":"'"$backend_trace_id"'"}}}],"minimum_should_match":1}}}'
+  app_http_span=$(es_wait_for_item "traces-*" "$app_http_span_query" "Android span in the backend's trace")
+fi
 
 trigger_crash_and_relaunch_app
 crash_event=$(es_wait_for_item "logs-*" "$crash_event_query" "Android app crash event")
@@ -289,21 +329,26 @@ es_build_dir="$repo_root/build/e2e"
 mkdir -p "$es_build_dir"
 echo "$app_span" > "$es_build_dir/app_span.json"
 echo "$app_log" > "$es_build_dir/app_log.json"
+echo "$app_http_span" > "$es_build_dir/app_http_span.json"
 echo "$backend_span" > "$es_build_dir/backend_span.json"
 echo "$crash_event" > "$es_build_dir/crash_event.json"
 
 # Validate data was found
 failed=0
 if [ -z "$app_span" ]; then
-  echo "FAIL: No Android app spans found in ES within timeout"
+  echo "FAIL: No Android app startup span found in ES within timeout"
   failed=1
 fi
 if [ -z "$app_log" ]; then
-  echo "FAIL: No Android app logs found in ES within timeout"
+  echo "FAIL: No Android app startup log found in ES within timeout"
   failed=1
 fi
 if [ -z "$backend_span" ]; then
-  echo "FAIL: No backend spans found in ES within timeout"
+  echo "FAIL: No backend span found in ES within timeout"
+  failed=1
+fi
+if [ -z "$app_http_span" ]; then
+  echo "FAIL: No Android app span found in the backend's trace within timeout"
   failed=1
 fi
 if [ -z "$crash_event" ]; then
@@ -315,13 +360,17 @@ if [ "$failed" -eq 1 ]; then
 fi
 
 # Validate Android app telemetry
-echo "Validating Android app span..."
+echo "Validating Android app startup span..."
 validate_app_span "$app_span"
-echo "Validating Android app log..."
+echo "Validating Android app startup log..."
 validate_app_log "$app_log"
 # Validate backend telemetry
 echo "Validating backend span..."
 validate_backend_span "$backend_span"
+# Validate distributed trace correlation (the app's auto-instrumented HTTP span and the backend
+# span share the same trace.id)
+echo "Validating trace correlation..."
+validate_trace_correlation "$app_http_span" "$backend_span"
 echo "Validating Android app crash event..."
 validate_crash_event "$crash_event"
 

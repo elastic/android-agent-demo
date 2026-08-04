@@ -190,7 +190,7 @@ private fun weatherIcon(temp: Double): ImageVector =
       else -> Icons.Outlined.AcUnit
     }
 
-private fun temperatureDescriptor(temp: Double): String =
+internal fun temperatureDescriptor(temp: Double): String =
     when {
       temp >= 30 -> "Hot"
       temp >= 25 -> "Warm"

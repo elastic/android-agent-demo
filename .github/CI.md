@@ -9,7 +9,8 @@ The `ci` workflow ([workflows/ci.yml](workflows/ci.yml)) runs a change detector,
 jobs, and a gatekeeper:
 
 - **changes** — detects whether the pull request or push contains anything other than Markdown.
-- **checks** — runs `./checks.sh` (Spotless formatting + compilation).
+- **checks** — runs `./checks.sh` (Spotless formatting, compilation, and behavior-focused local
+  unit tests).
 - **e2e** — runs [scripts/e2e-test/e2e_test.sh](scripts/e2e-test/e2e_test.sh): starts
   Elasticsearch, Kibana, and the Elastic Agent via `start-local --edot`, starts the pre-built
   backend Docker image, builds the app in Release, installs it on an Android Emulator, exercises
@@ -29,8 +30,8 @@ runs so the required `ci` check reports success.
 ./checks.sh
 ```
 
-The script runs `./gradlew check`, which includes Spotless formatting enforcement and compilation.
-Fix formatting findings with:
+The script runs `./gradlew check`, which includes Spotless formatting enforcement, compilation, and
+behavior-focused local unit tests. Fix formatting findings with:
 
 ```sh
 ./gradlew spotlessApply

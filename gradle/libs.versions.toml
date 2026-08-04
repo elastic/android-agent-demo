@@ -6,6 +6,7 @@ compose-bom = "2026.06.01"
 kotlin = "2.4.10"
 material = "1.14.0"
 activity-compose = "1.13.0"
+junit = "4.13.2"
 
 [libraries]
 androidx-navigation-fragment-ktx = { module = "androidx.navigation:navigation-fragment-ktx", version.ref = "navigation" }
@@ -20,6 +21,7 @@ androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity-compose" }
 com-google-android-material = { module = "com.google.android.material:material", version.ref = "material" }
+junit = { module = "junit:junit", version.ref = "junit" }
 
 [plugins]
 androidApp = { id = "com.android.application", version.ref = "android" }

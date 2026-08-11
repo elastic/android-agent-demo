@@ -21,7 +21,7 @@ The test path validates that:
   * The startup span `Creating app`.
   * The startup log `During app creation`.
   * The crash event `device.crash`, including `exception.type` and `exception.stacktrace`.
-  * The backend service `weather-backend`.
+  * The backend service `weather-demo-backend`.
 
 ## Failure artifacts
 
@@ -33,5 +33,5 @@ The test stores diagnostics under `build/e2e/`:
 * `backend_span.json`
 * `crash_event.json`
 
-On failure, the script also prints running Docker containers, recent `weather-backend` logs, and
+On failure, the script also prints running Docker containers, recent `weather-demo-backend` logs, and
 the last logcat lines to the CI log.

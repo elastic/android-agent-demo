@@ -259,7 +259,7 @@ validate_crash_event() {
   local stacktrace
   stacktrace=$(echo "$crash_event" | jq -r '._source.attributes."exception.stacktrace" // empty')
 
-  assert_equals "device.crash" "$event_name"
+  assert_equals "app.crash" "$event_name"
   assert_equals "java.lang.RuntimeException" "$exception_type"
   assert_not_empty "$stacktrace" "Crash event has no exception.stacktrace field"
 }
@@ -306,7 +306,7 @@ echo "Waiting for telemetry data to be indexed..."
 app_span_query='{"query":{"bool":{"filter":[{"term":{"service.name":{"value":"weather-demo-app"}}},{"term":{"name":{"value":"Creating app"}}}]}}}'
 app_log_query='{"query":{"bool":{"filter":[{"term":{"service.name":{"value":"weather-demo-app"}}},{"match":{"body.text":"During app creation"}}]}}}'
 backend_span_query='{"query":{"bool":{"filter":[{"term":{"service.name":{"value":"weather-demo-backend"}}},{"term":{"name":{"value":"GET /v1/forecast"}}}]}}}'
-crash_event_query='{"query":{"bool":{"filter":[{"term":{"service.name":{"value":"weather-demo-app"}}}],"should":[{"term":{"event_name":{"value":"device.crash"}}},{"term":{"attributes.otel.event.name":{"value":"device.crash"}}}],"minimum_should_match":1}}}'
+crash_event_query='{"query":{"bool":{"filter":[{"term":{"service.name":{"value":"weather-demo-app"}}}],"should":[{"term":{"event_name":{"value":"app.crash"}}},{"term":{"attributes.otel.event.name":{"value":"app.crash"}}}],"minimum_should_match":1}}}'
 
 app_span=$(es_wait_for_item "traces-*" "$app_span_query" "Android app startup span")
 app_log=$(es_wait_for_item "logs-*" "$app_log_query" "Android app startup log")

@@ -1,5 +1,5 @@
 [versions]
-android = "9.3.2"
+android = "9.4.0"
 navigation = "2.10.0"
 retrofit = "3.0.0"
 compose-bom = "2026.08.00"

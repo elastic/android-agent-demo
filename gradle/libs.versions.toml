@@ -1,6 +1,6 @@
 [versions]
 android = "9.4.0"
-navigation = "2.10.0"
+navigation = "2.10.1"
 retrofit = "3.0.0"
 compose-bom = "2026.08.00"
 kotlin = "2.4.20"

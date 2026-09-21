@@ -75,7 +75,7 @@ jobs:
       - e2e
     steps:
       - id: check
-        uses: elastic/oblt-actions/check-dependent-jobs@e1273cafad946cd6255c5c3ade06cce92ea77e33 # v1
+        uses: elastic/oblt-actions/check-dependent-jobs@d8162ef6546992b5b3354c825ead9b8582d25132 # v1
         with:
           jobs: ${{ toJSON(needs) }}
       - run: ${{ steps.check.outputs.is-success }}

@@ -161,6 +161,8 @@ Useful service names:
 - `weather-demo-app`
 - `weather-demo-backend`
 
+Search for span names such as `Creating app` or `Main Activity creation`.
+
 For a more detailed overview, take a look at how
 to [Visualize telemetry](https://www.elastic.co/docs/reference/opentelemetry/edot-sdks/android/getting-started#visualize-telemetry)
 in the docs.

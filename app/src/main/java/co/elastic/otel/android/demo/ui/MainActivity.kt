@@ -69,7 +69,7 @@ class MainActivity : AppCompatActivity() {
       ViewCompat.setOnApplyWindowInsetsListener(binding.fab) { view, windowInsets ->
         val insets =
             windowInsets.getInsets(
-                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout(),
             )
         view.updateLayoutParams<CoordinatorLayout.LayoutParams> {
           bottomMargin = insets.bottom + fabBaseMargin

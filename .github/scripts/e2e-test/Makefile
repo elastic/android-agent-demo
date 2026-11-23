@@ -2,6 +2,9 @@ MAKEFLAGS += --no-print-directory
 .SHELLFLAGS = -euc
 SHELL = /bin/bash
 
+# Pin for collector config compatibility; remove once start-local or the collector is fixed upstream.
+ELASTIC_STACK_VERSION := 9.5.6
+
 repo_root := $(shell cd $(dir $(lastword $(MAKEFILE_LIST))) && git rev-parse --show-toplevel)
 
 .PHONY: elastic-start-local
@@ -9,7 +12,7 @@ elastic-start-local: elastic-start-local/.env  ## Start ES + EDOT Collector loca
 
 elastic-start-local/.env:
 	set -euo pipefail; \
-	curl -fsSL https://elastic.co/start-local | sh -s -- --esonly --edot; \
+	curl -fsSL https://elastic.co/start-local | sh -s -- -v $(ELASTIC_STACK_VERSION) --esonly --edot; \
 	test -f elastic-start-local/.env
 
 .PHONY: start-backend
